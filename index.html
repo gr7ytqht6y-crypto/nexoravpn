@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NexoraVPN — быстрый и простой VPN</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 7%;
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .logo span {
+            color: #e00000;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .hero {
+            min-height: 75vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .hero h1 {
+            font-size: clamp(42px, 10vw, 80px);
+            line-height: 1;
+            margin-bottom: 25px;
+        }
+
+        .hero h1 span {
+            color: #e00000;
+        }
+
+        .hero p {
+            color: #aaa;
+            font-size: 18px;
+            max-width: 600px;
+            margin-bottom: 35px;
+        }
+
+        .button {
+            display: inline-block;
+            background: #e00000;
+            color: #fff;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .button:hover {
+            background: #ff2020;
+            transform: translateY(-2px);
+        }
+
+        .pricing {
+            padding: 80px 7%;
+            border-top: 1px solid #222;
+        }
+
+        .pricing h2 {
+            text-align: center;
+            font-size: 40px;
+            margin-bottom: 45px;
+        }
+
+        .plans {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .plan {
+            background: #0d0d0d;
+            border: 1px solid #292929;
+            border-radius: 14px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .plan.featured {
+            border-color: #e00000;
+        }
+
+        .plan h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+
+        .price {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .plan p {
+            color: #999;
+            margin-bottom: 25px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            border-top: 1px solid #222;
+        }
+
+        @media (max-width: 700px) {
+            .plans {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">Nexora<span>VPN</span></div>
+
+    <nav>
+        <a href="#pricing">Тарифы</a>
+    </nav>
+</header>
+
+<section class="hero">
+
+    <h1>Интернет.<br><span>Без границ.</span></h1>
+
+    <p>
+        NexoraVPN — простой VPN для безопасного
+        и комфортного доступа к интернету.
+    </p>
+
+    <a href="#pricing" class="button">
+        Выбрать тариф
+    </a>
+
+</section>
+
+<section class="pricing" id="pricing">
+
+    <h2>Тарифы</h2>
+
+    <div class="plans">
+
+        <div class="plan">
+            <h3>Неделя</h3>
+            <div class="price">50 ₽</div>
+            <p>Доступ на 7 дней</p>
+            <a href="#" class="button">Подключить</a>
+        </div>
+
+        <div class="plan featured">
+            <h3>Месяц</h3>
+            <div class="price">170 ₽</div>
+            <p>Доступ на 30 дней</p>
+            <a href="#" class="button">Подключить</a>
+        </div>
+
+        <div class="plan">
+            <h3>Год</h3>
+            <div class="price">725 ₽</div>
+            <p>Доступ на 365 дней</p>
+            <a href="#" class="button">Подключить</a>
+        </div>
+
+    </div>
+
+</section>
+
+<footer>
+    © 2026 NexoraVPN
+</footer>
+
+</body>
+</html>
