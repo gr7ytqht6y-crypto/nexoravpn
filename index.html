@@ -1,215 +1,1395 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070707">
+  <meta name="description" content="NexoraVPN — быстрый и безопасный VPN. Интернет. Без границ.">
+  <title>NexoraVPN — Интернет. Без границ.</title>
 
-    <title>NexoraVPN — быстрый и простой VPN</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    :root {
+      --bg: #070707;
+      --card: #101010;
+      --card-light: #151515;
+      --text: #ffffff;
+      --muted: #999999;
+      --red: #ff3030;
+      --border: rgba(255,255,255,.09);
+      --radius: 22px;
+    }
 
-        body {
-            background: #000;
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
+    html {
+      scroll-behavior: smooth;
+    }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 24px 7%;
-            border-bottom: 1px solid #222;
-        }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        Inter,
+        Arial,
+        sans-serif;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
 
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-        }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-        .logo span {
-            color: #e00000;
-        }
+    button {
+      font: inherit;
+    }
 
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            margin-left: 20px;
-        }
+    .container {
+      width: min(1120px, calc(100% - 36px));
+      margin: auto;
+    }
 
-        .hero {
-            min-height: 75vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 40px 20px;
-        }
+    /* =========================================================
+       BACKGROUND INTERNET ART
+       ========================================================= */
 
-        .hero h1 {
-            font-size: clamp(42px, 10vw, 80px);
-            line-height: 1;
-            margin-bottom: 25px;
-        }
+    .network-background {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+      opacity: .27;
+    }
 
-        .hero h1 span {
-            color: #e00000;
-        }
+    .network-background::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(
+          circle at 50% 10%,
+          rgba(255,255,255,.055),
+          transparent 32%
+        ),
+        radial-gradient(
+          circle at 10% 60%,
+          rgba(255,255,255,.025),
+          transparent 30%
+        );
+    }
 
-        .hero p {
-            color: #aaa;
-            font-size: 18px;
-            max-width: 600px;
-            margin-bottom: 35px;
-        }
+    .tech-icon {
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      color: #777;
+      opacity: .20;
+      filter: blur(.15px);
+    }
 
-        .button {
-            display: inline-block;
-            background: #e00000;
-            color: #fff;
-            text-decoration: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-weight: 700;
-            transition: 0.2s;
-        }
+    .tech-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
-        .button:hover {
-            background: #ff2020;
-            transform: translateY(-2px);
-        }
+    .globe {
+      width: 250px;
+      height: 250px;
+      left: -50px;
+      top: 120px;
+      opacity: .16;
+    }
 
-        .pricing {
-            padding: 80px 7%;
-            border-top: 1px solid #222;
-        }
+    .bolt {
+      right: 8%;
+      top: 145px;
+      width: 125px;
+      height: 125px;
+      opacity: .14;
+    }
 
-        .pricing h2 {
-            text-align: center;
-            font-size: 40px;
-            margin-bottom: 45px;
-        }
+    .wifi {
+      left: 12%;
+      top: 48%;
+      width: 135px;
+      height: 135px;
+      opacity: .13;
+    }
 
-        .plans {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            max-width: 1000px;
-            margin: auto;
-        }
+    .shield {
+      right: -25px;
+      top: 52%;
+      width: 210px;
+      height: 210px;
+      opacity: .12;
+    }
 
-        .plan {
-            background: #0d0d0d;
-            border: 1px solid #292929;
-            border-radius: 14px;
-            padding: 30px;
-            text-align: center;
-        }
+    .cloud {
+      left: 5%;
+      bottom: 7%;
+      width: 170px;
+      height: 170px;
+      opacity: .12;
+    }
 
-        .plan.featured {
-            border-color: #e00000;
-        }
+    .lock {
+      right: 13%;
+      bottom: 10%;
+      width: 125px;
+      height: 125px;
+      opacity: .12;
+    }
 
-        .plan h3 {
-            font-size: 22px;
-            margin-bottom: 15px;
-        }
+    .nodes {
+      right: 34%;
+      top: 17%;
+      width: 170px;
+      height: 170px;
+      opacity: .10;
+    }
 
-        .price {
-            font-size: 36px;
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
+    .signal {
+      left: 45%;
+      bottom: 3%;
+      width: 170px;
+      height: 170px;
+      opacity: .10;
+    }
 
-        .plan p {
-            color: #999;
-            margin-bottom: 25px;
-        }
+    .circuit {
+      right: -20px;
+      bottom: 35%;
+      width: 190px;
+      height: 190px;
+      opacity: .09;
+    }
 
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: #666;
-            border-top: 1px solid #222;
-        }
+    /* =========================================================
+       HEADER
+       ========================================================= */
 
-        @media (max-width: 700px) {
-            .plans {
-                grid-template-columns: 1fr;
-            }
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      background: rgba(7,7,7,.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
 
-            nav {
-                display: none;
-            }
-        }
-    </style>
+    .nav {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -.6px;
+    }
+
+    .logo-mark {
+      width: 35px;
+      height: 35px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: var(--red);
+      box-shadow: 0 0 30px rgba(255,48,48,.28);
+      font-size: 18px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 29px;
+      color: #aaa;
+      font-size: 14px;
+    }
+
+    .nav-links a {
+      transition: color .2s ease;
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .login {
+      padding: 10px 17px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: white !important;
+    }
+
+    .menu-button {
+      display: none;
+      background: transparent;
+      border: 0;
+      color: white;
+      font-size: 25px;
+      cursor: pointer;
+    }
+
+    /* =========================================================
+       HERO
+       ========================================================= */
+
+    .hero {
+      min-height: 820px;
+      padding-top: 125px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .hero-content {
+      width: 100%;
+      text-align: center;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,.035);
+      color: #c5c5c5;
+      font-size: 13px;
+      margin-bottom: 25px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #35d878;
+      box-shadow: 0 0 13px rgba(53,216,120,.8);
+    }
+
+    .hero h1 {
+      max-width: 950px;
+      margin: auto;
+      font-size: clamp(53px, 9vw, 100px);
+      line-height: .94;
+      letter-spacing: -6px;
+      font-weight: 850;
+    }
+
+    .hero h1 span {
+      color: var(--red);
+    }
+
+    .hero-description {
+      max-width: 650px;
+      margin: 30px auto 34px;
+      color: var(--muted);
+      font-size: clamp(17px, 2vw, 21px);
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 52px;
+      padding: 0 25px;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 750;
+      transition:
+        transform .2s ease,
+        background .2s ease,
+        box-shadow .2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: var(--red);
+      color: white;
+      box-shadow: 0 14px 40px rgba(255,48,48,.20);
+    }
+
+    .btn-primary:hover {
+      background: #ff4141;
+      box-shadow: 0 18px 50px rgba(255,48,48,.28);
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.045);
+      color: white;
+    }
+
+    /* =========================================================
+       CONNECTION CARD
+       ========================================================= */
+
+    .connection-card {
+      width: min(570px, 100%);
+      margin: 70px auto 0;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(24,24,24,.92),
+          rgba(11,11,11,.92)
+        );
+      box-shadow: 0 30px 90px rgba(0,0,0,.48);
+      text-align: left;
+    }
+
+    .connection-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .connection-left {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .connection-icon {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      background: rgba(255,48,48,.12);
+      font-size: 21px;
+    }
+
+    .connection-title {
+      font-weight: 750;
+    }
+
+    .connection-subtitle {
+      color: #777;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .connected {
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: #45df87;
+      background: rgba(69,223,135,.08);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .connection-line {
+      height: 1px;
+      background: rgba(255,255,255,.07);
+      margin: 19px 0;
+    }
+
+    .connection-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .stat-label {
+      color: #707070;
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    .stat-value {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* =========================================================
+       SECTIONS
+       ========================================================= */
+
+    section {
+      padding: 110px 0;
+      position: relative;
+    }
+
+    .section-heading {
+      max-width: 680px;
+      margin: 0 auto 55px;
+      text-align: center;
+    }
+
+    .section-heading h2 {
+      font-size: clamp(35px, 5vw, 54px);
+      line-height: 1;
+      letter-spacing: -2.5px;
+      margin-bottom: 17px;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    /* =========================================================
+       FEATURES
+       ========================================================= */
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .feature {
+      padding: 26px;
+      min-height: 205px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(15,15,15,.82);
+      transition: transform .25s ease, border-color .25s ease;
+    }
+
+    .feature:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255,48,48,.25);
+    }
+
+    .feature-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: rgba(255,48,48,.10);
+      color: var(--red);
+      font-size: 21px;
+      margin-bottom: 23px;
+    }
+
+    .feature h3 {
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .feature p {
+      color: #858585;
+      font-size: 14px;
+    }
+
+    /* =========================================================
+       PRICING
+       ========================================================= */
+
+    .pricing {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      align-items: stretch;
+    }
+
+    .price-card {
+      position: relative;
+      padding: 30px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: rgba(15,15,15,.90);
+    }
+
+    .price-card.popular {
+      border-color: rgba(255,48,48,.55);
+      box-shadow: 0 20px 60px rgba(255,48,48,.09);
+      transform: translateY(-8px);
+    }
+
+    .popular-label {
+      position: absolute;
+      top: -13px;
+      left: 25px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: var(--red);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .price-name {
+      color: #aaa;
+      font-size: 14px;
+      margin-bottom: 13px;
+    }
+
+    .price {
+      font-size: 48px;
+      line-height: 1;
+      letter-spacing: -2px;
+      font-weight: 850;
+    }
+
+    .price small {
+      color: #777;
+      font-size: 14px;
+      letter-spacing: 0;
+      font-weight: 500;
+    }
+
+    .price-description {
+      min-height: 48px;
+      color: #777;
+      font-size: 13px;
+      margin: 14px 0 24px;
+    }
+
+    .price-button {
+      width: 100%;
+      border: 0;
+      cursor: pointer;
+    }
+
+    /* =========================================================
+       HOW IT WORKS
+       ========================================================= */
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+
+    .step {
+      position: relative;
+      padding: 25px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(15,15,15,.75);
+    }
+
+    .step-number {
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+
+    .step h3 {
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+
+    .step p {
+      color: #777;
+      font-size: 13px;
+    }
+
+    /* =========================================================
+       FAQ
+       ========================================================= */
+
+    .faq {
+      width: min(760px, 100%);
+      margin: auto;
+    }
+
+    details {
+      border: 1px solid var(--border);
+      background: rgba(15,15,15,.82);
+      border-radius: 17px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 21px 22px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::after {
+      content: "+";
+      color: #777;
+      font-size: 21px;
+      font-weight: 400;
+    }
+
+    details[open] summary::after {
+      content: "−";
+      color: var(--red);
+    }
+
+    .faq-answer {
+      padding: 0 22px 21px;
+      color: #858585;
+      font-size: 14px;
+    }
+
+    /* =========================================================
+       CTA
+       ========================================================= */
+
+    .cta {
+      padding: 125px 0;
+    }
+
+    .cta-box {
+      position: relative;
+      overflow: hidden;
+      padding: 75px 30px;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      text-align: center;
+      background:
+        radial-gradient(
+          circle at 50% 100%,
+          rgba(255,48,48,.15),
+          transparent 50%
+        ),
+        rgba(15,15,15,.90);
+    }
+
+    .cta-box h2 {
+      font-size: clamp(38px, 6vw, 64px);
+      line-height: .98;
+      letter-spacing: -3px;
+      margin-bottom: 18px;
+    }
+
+    .cta-box p {
+      max-width: 560px;
+      margin: auto auto 28px;
+      color: #858585;
+    }
+
+    /* =========================================================
+       FOOTER
+       ========================================================= */
+
+    footer {
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding: 30px 0;
+      color: #666;
+      font-size: 13px;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .footer-logo {
+      color: white;
+      font-weight: 750;
+    }
+
+    /* =========================================================
+       MOBILE
+       ========================================================= */
+
+    @media (max-width: 850px) {
+      .nav-links {
+        display: none;
+      }
+
+      .menu-button {
+        display: block;
+      }
+
+      .features,
+      .steps {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .pricing {
+        grid-template-columns: 1fr;
+        width: min(470px, 100%);
+        margin: auto;
+      }
+
+      .price-card.popular {
+        transform: none;
+      }
+
+      .hero {
+        min-height: 750px;
+      }
+
+      .hero h1 {
+        letter-spacing: -4px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .container {
+        width: min(100% - 28px, 1120px);
+      }
+
+      .nav {
+        height: 64px;
+      }
+
+      .logo {
+        font-size: 18px;
+      }
+
+      .logo-mark {
+        width: 32px;
+        height: 32px;
+      }
+
+      .hero {
+        min-height: 760px;
+        padding-top: 100px;
+      }
+
+      .hero h1 {
+        font-size: clamp(48px, 15vw, 70px);
+        letter-spacing: -3.5px;
+      }
+
+      .hero-description {
+        font-size: 16px;
+      }
+
+      .buttons {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .buttons .btn {
+        width: 100%;
+      }
+
+      .connection-stats {
+        grid-template-columns: 1fr;
+      }
+
+      section {
+        padding: 80px 0;
+      }
+
+      .features,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      .feature {
+        min-height: auto;
+      }
+
+      .section-heading {
+        margin-bottom: 35px;
+      }
+
+      .cta {
+        padding: 80px 0;
+      }
+
+      .cta-box {
+        padding: 55px 22px;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .network-background {
+        opacity: .20;
+      }
+
+      .globe {
+        width: 190px;
+        height: 190px;
+        left: -65px;
+      }
+
+      .shield {
+        width: 160px;
+        height: 160px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<header>
-    <div class="logo">Nexora<span>VPN</span></div>
+  <!-- =======================================================
+       SUBTLE INTERNET / TECHNOLOGY BACKGROUND
+       ======================================================= -->
 
-    <nav>
+  <div class="network-background" aria-hidden="true">
+
+    <!-- Globe -->
+    <div class="tech-icon globe">
+      <svg viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="78"/>
+        <ellipse cx="100" cy="100" rx="34" ry="78"/>
+        <path d="M22 100h156"/>
+        <path d="M31 67h138"/>
+        <path d="M31 133h138"/>
+        <path d="M100 22v156"/>
+        <path d="M100 22c-22 20-35 46-35 78s13 58 35 78"/>
+        <path d="M100 22c22 20 35 46 35 78s-13 58-35 78"/>
+      </svg>
+    </div>
+
+    <!-- Lightning -->
+    <div class="tech-icon bolt">
+      <svg viewBox="0 0 100 100">
+        <path d="M58 5L19 57h28l-7 38 41-55H53z"/>
+      </svg>
+    </div>
+
+    <!-- Wi-Fi -->
+    <div class="tech-icon wifi">
+      <svg viewBox="0 0 120 120">
+        <path d="M15 43c28-25 62-25 90 0"/>
+        <path d="M29 59c19-17 43-17 62 0"/>
+        <path d="M44 75c10-9 22-9 32 0"/>
+        <circle cx="60" cy="91" r="3"/>
+      </svg>
+    </div>
+
+    <!-- Shield -->
+    <div class="tech-icon shield">
+      <svg viewBox="0 0 200 230">
+        <path d="M100 15l72 28v57c0 54-34 92-72 115C62 192 28 154 28 100V43z"/>
+        <path d="M100 48v120"/>
+        <path d="M62 91l38 38 38-38"/>
+      </svg>
+    </div>
+
+    <!-- Cloud -->
+    <div class="tech-icon cloud">
+      <svg viewBox="0 0 160 120">
+        <path d="M45 92h78c18 0 29-11 29-26 0-14-11-25-25-26-5-23-25-36-46-31-17 4-27 18-29 34-17-2-31 9-31 25 0 14 10 24 24 24z"/>
+      </svg>
+    </div>
+
+    <!-- Lock -->
+    <div class="tech-icon lock">
+      <svg viewBox="0 0 120 140">
+        <rect x="23" y="58" width="74" height="62" rx="10"/>
+        <path d="M38 58V39c0-15 10-26 22-26s22 11 22 26v19"/>
+        <circle cx="60" cy="88" r="5"/>
+        <path d="M60 93v13"/>
+      </svg>
+    </div>
+
+    <!-- Network Nodes -->
+    <div class="tech-icon nodes">
+      <svg viewBox="0 0 180 180">
+        <path d="M25 90L70 35l50 28 35-38"/>
+        <path d="M25 90l50 47 45-74"/>
+        <path d="M75 137l60 12"/>
+        <circle cx="25" cy="90" r="7"/>
+        <circle cx="70" cy="35" r="7"/>
+        <circle cx="120" cy="63" r="7"/>
+        <circle cx="155" cy="25" r="7"/>
+        <circle cx="75" cy="137" r="7"/>
+        <circle cx="135" cy="149" r="7"/>
+      </svg>
+    </div>
+
+    <!-- Signal -->
+    <div class="tech-icon signal">
+      <svg viewBox="0 0 150 150">
+        <path d="M20 105h12"/>
+        <path d="M20 85h25"/>
+        <path d="M20 65h40"/>
+        <path d="M20 45h55"/>
+        <circle cx="105" cy="105" r="5"/>
+        <path d="M105 88c10 0 18 8 18 17"/>
+        <path d="M105 70c20 0 35 15 35 35"/>
+        <path d="M105 51c30 0 55 25 55 54"/>
+      </svg>
+    </div>
+
+    <!-- Circuit -->
+    <div class="tech-icon circuit">
+      <svg viewBox="0 0 180 180">
+        <path d="M20 40h55v35h35V40h50"/>
+        <path d="M20 140h45v-32h45v32h50"/>
+        <path d="M75 75v33"/>
+        <circle cx="20" cy="40" r="4"/>
+        <circle cx="160" cy="40" r="4"/>
+        <circle cx="20" cy="140" r="4"/>
+        <circle cx="160" cy="140" r="4"/>
+      </svg>
+    </div>
+
+  </div>
+
+  <!-- =======================================================
+       HEADER
+       ======================================================= -->
+
+  <header>
+    <div class="container nav">
+
+      <a href="#" class="logo">
+        <span class="logo-mark">N</span>
+        <span>NexoraVPN</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#features">Преимущества</a>
         <a href="#pricing">Тарифы</a>
-    </nav>
-</header>
+        <a href="#how">Как это работает</a>
+        <a href="#faq">FAQ</a>
+        <a href="#" class="login">Войти</a>
+      </nav>
 
-<section class="hero">
+      <button class="menu-button" aria-label="Меню">☰</button>
 
-    <h1>Интернет.<br><span>Без границ.</span></h1>
+    </div>
+  </header>
 
-    <p>
-        NexoraVPN — простой VPN для безопасного
-        и комфортного доступа к интернету.
-    </p>
+  <!-- =======================================================
+       HERO
+       ======================================================= -->
 
-    <a href="#pricing" class="button">
-        Выбрать тариф
-    </a>
+  <main>
 
-</section>
+    <section class="hero">
 
-<section class="pricing" id="pricing">
+      <div class="container hero-content">
 
-    <h2>Тарифы</h2>
-
-    <div class="plans">
-
-        <div class="plan">
-            <h3>Неделя</h3>
-            <div class="price">50 ₽</div>
-            <p>Доступ на 7 дней</p>
-            <a href="#" class="button">Подключить</a>
+        <div class="status">
+          <span class="status-dot"></span>
+          NexoraVPN работает
         </div>
 
-        <div class="plan featured">
-            <h3>Месяц</h3>
-            <div class="price">170 ₽</div>
-            <p>Доступ на 30 дней</p>
-            <a href="#" class="button">Подключить</a>
+        <h1>
+          Интернет.<br>
+          <span>Без границ.</span>
+        </h1>
+
+        <p class="hero-description">
+          Защищённое соединение, высокая скорость и свобода
+          доступа к интернету — всё в одном VPN.
+        </p>
+
+        <div class="buttons">
+          <a href="#pricing" class="btn btn-primary">
+            Начать пользоваться
+          </a>
+
+          <a href="#features" class="btn btn-secondary">
+            Узнать больше
+          </a>
         </div>
 
-        <div class="plan">
-            <h3>Год</h3>
-            <div class="price">725 ₽</div>
-            <p>Доступ на 365 дней</p>
-            <a href="#" class="button">Подключить</a>
+        <div class="connection-card">
+
+          <div class="connection-top">
+
+            <div class="connection-left">
+              <div class="connection-icon">🛡</div>
+
+              <div>
+                <div class="connection-title">
+                  NexoraVPN
+                </div>
+
+                <div class="connection-subtitle">
+                  Защищённое соединение
+                </div>
+              </div>
+            </div>
+
+            <div class="connected">
+              ● Защищено
+            </div>
+
+          </div>
+
+          <div class="connection-line"></div>
+
+          <div class="connection-stats">
+
+            <div class="stat">
+              <div class="stat-label">Статус</div>
+              <div class="stat-value">Подключено</div>
+            </div>
+
+            <div class="stat">
+              <div class="stat-label">Защита</div>
+              <div class="stat-value">Активна</div>
+            </div>
+
+            <div class="stat">
+              <div class="stat-label">Сервис</div>
+              <div class="stat-value">NexoraVPN</div>
+            </div>
+
+          </div>
+
         </div>
+
+      </div>
+
+    </section>
+
+    <!-- =====================================================
+         FEATURES
+         ===================================================== -->
+
+    <section id="features">
+
+      <div class="container">
+
+        <div class="section-heading">
+          <h2>Всё необходимое.<br>Ничего лишнего.</h2>
+          <p>
+            NexoraVPN создан для простого и комфортного
+            использования интернета.
+          </p>
+        </div>
+
+        <div class="features">
+
+          <div class="feature">
+            <div class="feature-icon">🔒</div>
+            <h3>Защищённое соединение</h3>
+            <p>
+              Защищаем ваше соединение при использовании
+              интернета.
+            </p>
+          </div>
+
+          <div class="feature">
+            <div class="feature-icon">⚡</div>
+            <h3>Высокая скорость</h3>
+            <p>
+              Минимум лишних действий между вами и интернетом.
+            </p>
+          </div>
+
+          <div class="feature">
+            <div class="feature-icon">🌐</div>
+            <h3>Свобода интернета</h3>
+            <p>
+              Используйте интернет без лишних ограничений.
+            </p>
+          </div>
+
+          <div class="feature">
+            <div class="feature-icon">🛡</div>
+            <h3>Конфиденциальность</h3>
+            <p>
+              Дополнительный уровень приватности вашего
+              интернет-соединения.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- =====================================================
+         PRICING
+         ===================================================== -->
+
+    <section id="pricing">
+
+      <div class="container">
+
+        <div class="section-heading">
+          <h2>Выберите свой тариф</h2>
+          <p>
+            Простые цены без сложных условий.
+          </p>
+        </div>
+
+        <div class="pricing">
+
+          <div class="price-card">
+
+            <div class="price-name">Неделя</div>
+
+            <div class="price">
+              50 ₽
+              <small>/ 7 дней</small>
+            </div>
+
+            <div class="price-description">
+              Попробуйте NexoraVPN без долгосрочной подписки.
+            </div>
+
+            <a href="#" class="btn btn-secondary price-button">
+              Выбрать
+            </a>
+
+          </div>
+
+          <div class="price-card popular">
+
+            <div class="popular-label">
+              Популярный
+            </div>
+
+            <div class="price-name">Месяц</div>
+
+            <div class="price">
+              170 ₽
+              <small>/ месяц</small>
+            </div>
+
+            <div class="price-description">
+              Оптимальный вариант для постоянного использования.
+            </div>
+
+            <a href="#" class="btn btn-primary price-button">
+              Выбрать
+            </a>
+
+          </div>
+
+          <div class="price-card">
+
+            <div class="price-name">Год</div>
+
+            <div class="price">
+              725 ₽
+              <small>/ год</small>
+            </div>
+
+            <div class="price-description">
+              Максимум удобства — одна подписка на целый год.
+            </div>
+
+            <a href="#" class="btn btn-secondary price-button">
+              Выбрать
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- =====================================================
+         HOW IT WORKS
+         ===================================================== -->
+
+    <section id="how">
+
+      <div class="container">
+
+        <div class="section-heading">
+          <h2>Как это работает</h2>
+          <p>
+            Всего несколько шагов до защищённого соединения.
+          </p>
+        </div>
+
+        <div class="steps">
+
+          <div class="step">
+            <div class="step-number">01</div>
+            <h3>Выберите тариф</h3>
+            <p>
+              Подберите подходящий период подписки.
+            </p>
+          </div>
+
+          <div class="step">
+            <div class="step-number">02</div>
+            <h3>Оплатите</h3>
+            <p>
+              Оплатите выбранный тариф удобным способом.
+            </p>
+          </div>
+
+          <div class="step">
+            <div class="step-number">03</div>
+            <h3>Получите доступ</h3>
+            <p>
+              После оплаты вы получите данные для подключения.
+            </p>
+          </div>
+
+          <div class="step">
+            <div class="step-number">04</div>
+            <h3>Подключитесь</h3>
+            <p>
+              Запустите NexoraVPN и пользуйтесь интернетом.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- =====================================================
+         FAQ
+         ===================================================== -->
+
+    <section id="faq">
+
+      <div class="container">
+
+        <div class="section-heading">
+          <h2>Частые вопросы</h2>
+          <p>
+            Коротко отвечаем на самые важные вопросы.
+          </p>
+        </div>
+
+        <div class="faq">
+
+          <details>
+            <summary>Что такое NexoraVPN?</summary>
+            <div class="faq-answer">
+              NexoraVPN — сервис VPN, который создаёт
+              защищённое соединение между вашим устройством
+              и VPN-сервером.
+            </div>
+          </details>
+
+          <details>
+            <summary>На каких устройствах можно использовать VPN?</summary>
+            <div class="faq-answer">
+              Мы планируем поддержку основных современных
+              устройств и платформ.
+            </div>
+          </details>
+
+          <details>
+            <summary>Как получить доступ после оплаты?</summary>
+            <div class="faq-answer">
+              После запуска системы оплаты доступ будет
+              автоматически привязан к вашему аккаунту.
+            </div>
+          </details>
+
+          <details>
+            <summary>Можно ли отменить подписку?</summary>
+            <div class="faq-answer">
+              Условия отмены и продления будут указаны
+              перед оформлением подписки.
+            </div>
+          </details>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- =====================================================
+         CTA
+         ===================================================== -->
+
+    <section class="cta">
+
+      <div class="container">
+
+        <div class="cta-box">
+
+          <h2>
+            Интернет.<br>
+            Твой.
+          </h2>
+
+          <p>
+            Подключайтесь к NexoraVPN и получите больше
+            свободы в интернете.
+          </p>
+
+          <a href="#pricing" class="btn btn-primary">
+            Начать пользоваться
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- =======================================================
+       FOOTER
+       ======================================================= -->
+
+  <footer>
+
+    <div class="container footer-inner">
+
+      <div class="footer-logo">
+        NexoraVPN
+      </div>
+
+      <div>
+        © 2026 NexoraVPN. Все права защищены.
+      </div>
 
     </div>
 
-</section>
-
-<footer>
-    © 2026 NexoraVPN
-</footer>
+  </footer>
 
 </body>
 </html>
