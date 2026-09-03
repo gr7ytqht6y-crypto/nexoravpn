@@ -17,9 +17,8 @@
     :root {
       --bg: #070707;
       --card: #101010;
-      --card-light: #151515;
-      --text: #ffffff;
-      --muted: #999999;
+      --text: #fff;
+      --muted: #999;
       --red: #ff3030;
       --border: rgba(255,255,255,.09);
       --radius: 22px;
@@ -27,6 +26,7 @@
 
     html {
       scroll-behavior: smooth;
+      scroll-padding-top: 90px;
     }
 
     body {
@@ -59,7 +59,7 @@
     }
 
     /* =========================================================
-       BACKGROUND INTERNET ART
+       BACKGROUND
        ========================================================= */
 
     .network-background {
@@ -94,7 +94,6 @@
       height: 110px;
       color: #777;
       opacity: .20;
-      filter: blur(.15px);
     }
 
     .tech-icon svg {
@@ -200,6 +199,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      position: relative;
     }
 
     .logo {
@@ -209,6 +209,7 @@
       font-size: 20px;
       font-weight: 800;
       letter-spacing: -.6px;
+      flex-shrink: 0;
     }
 
     .logo-mark {
@@ -222,35 +223,69 @@
       font-size: 18px;
     }
 
+    /* Нормальная навигационная панель */
+
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 29px;
-      color: #aaa;
-      font-size: 14px;
+      gap: 5px;
+      padding: 5px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      background: rgba(255,255,255,.035);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
     }
 
     .nav-links a {
-      transition: color .2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 13px;
+      border-radius: 11px;
+      color: #999;
+      font-size: 13px;
+      font-weight: 600;
+      transition:
+        color .2s ease,
+        background .2s ease,
+        transform .2s ease;
     }
 
     .nav-links a:hover {
-      color: white;
+      color: #fff;
+      background: rgba(255,255,255,.07);
+      transform: translateY(-1px);
     }
 
-    .login {
-      padding: 10px 17px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: white !important;
+    .nav-links a:active {
+      transform: scale(.97);
+    }
+
+    .nav-links .login {
+      margin-left: 4px;
+      padding: 0 16px;
+      color: #fff !important;
+      background: rgba(255,48,48,.10);
+      border: 1px solid rgba(255,48,48,.32);
+    }
+
+    .nav-links .login:hover {
+      background: rgba(255,48,48,.18);
+      border-color: rgba(255,48,48,.55);
+      box-shadow: 0 0 20px rgba(255,48,48,.12);
     }
 
     .menu-button {
       display: none;
-      background: transparent;
-      border: 0;
+      width: 42px;
+      height: 42px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 13px;
       color: white;
-      font-size: 25px;
+      font-size: 21px;
       cursor: pointer;
     }
 
@@ -331,11 +366,16 @@
       transition:
         transform .2s ease,
         background .2s ease,
-        box-shadow .2s ease;
+        box-shadow .2s ease,
+        border-color .2s ease;
     }
 
     .btn:hover {
       transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: scale(.98);
     }
 
     .btn-primary {
@@ -353,6 +393,11 @@
       border: 1px solid var(--border);
       background: rgba(255,255,255,.045);
       color: white;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,.075);
+      border-color: rgba(255,255,255,.16);
     }
 
     /* =========================================================
@@ -536,12 +581,25 @@
       border: 1px solid var(--border);
       border-radius: 24px;
       background: rgba(15,15,15,.90);
+      transition:
+        transform .25s ease,
+        border-color .25s ease,
+        box-shadow .25s ease;
+    }
+
+    .price-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255,255,255,.16);
     }
 
     .price-card.popular {
       border-color: rgba(255,48,48,.55);
       box-shadow: 0 20px 60px rgba(255,48,48,.09);
       transform: translateY(-8px);
+    }
+
+    .price-card.popular:hover {
+      transform: translateY(-12px);
     }
 
     .popular-label {
@@ -589,6 +647,19 @@
       width: 100%;
       border: 0;
       cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .price-button::after {
+      content: "→";
+      margin-left: 9px;
+      font-size: 16px;
+      transition: transform .2s ease;
+    }
+
+    .price-button:hover::after {
+      transform: translateX(4px);
     }
 
     /* =========================================================
@@ -641,6 +712,11 @@
       border-radius: 17px;
       margin-bottom: 10px;
       overflow: hidden;
+      transition: border-color .2s ease;
+    }
+
+    details:hover {
+      border-color: rgba(255,255,255,.15);
     }
 
     summary {
@@ -741,12 +817,43 @@
        ========================================================= */
 
     @media (max-width: 850px) {
+
       .nav-links {
         display: none;
       }
 
+      .nav-links.mobile-open {
+        display: flex;
+        position: absolute;
+        top: 66px;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 5px;
+        padding: 9px;
+        border-radius: 18px;
+        background: rgba(10,10,10,.96);
+        border: 1px solid rgba(255,255,255,.10);
+        box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+
+      .nav-links.mobile-open a {
+        width: 100%;
+        justify-content: flex-start;
+        min-height: 44px;
+      }
+
+      .nav-links.mobile-open .login {
+        margin-left: 0;
+        justify-content: center;
+      }
+
       .menu-button {
-        display: block;
+        display: grid;
+        place-items: center;
       }
 
       .features,
@@ -760,7 +867,8 @@
         margin: auto;
       }
 
-      .price-card.popular {
+      .price-card.popular,
+      .price-card.popular:hover {
         transform: none;
       }
 
@@ -774,6 +882,7 @@
     }
 
     @media (max-width: 560px) {
+
       .container {
         width: min(100% - 28px, 1120px);
       }
@@ -869,12 +978,11 @@
 <body>
 
   <!-- =======================================================
-       SUBTLE INTERNET / TECHNOLOGY BACKGROUND
+       BACKGROUND
        ======================================================= -->
 
   <div class="network-background" aria-hidden="true">
 
-    <!-- Globe -->
     <div class="tech-icon globe">
       <svg viewBox="0 0 200 200">
         <circle cx="100" cy="100" r="78"/>
@@ -888,14 +996,12 @@
       </svg>
     </div>
 
-    <!-- Lightning -->
     <div class="tech-icon bolt">
       <svg viewBox="0 0 100 100">
         <path d="M58 5L19 57h28l-7 38 41-55H53z"/>
       </svg>
     </div>
 
-    <!-- Wi-Fi -->
     <div class="tech-icon wifi">
       <svg viewBox="0 0 120 120">
         <path d="M15 43c28-25 62-25 90 0"/>
@@ -905,7 +1011,6 @@
       </svg>
     </div>
 
-    <!-- Shield -->
     <div class="tech-icon shield">
       <svg viewBox="0 0 200 230">
         <path d="M100 15l72 28v57c0 54-34 92-72 115C62 192 28 154 28 100V43z"/>
@@ -914,14 +1019,12 @@
       </svg>
     </div>
 
-    <!-- Cloud -->
     <div class="tech-icon cloud">
       <svg viewBox="0 0 160 120">
         <path d="M45 92h78c18 0 29-11 29-26 0-14-11-25-25-26-5-23-25-36-46-31-17 4-27 18-29 34-17-2-31 9-31 25 0 14 10 24 24 24z"/>
       </svg>
     </div>
 
-    <!-- Lock -->
     <div class="tech-icon lock">
       <svg viewBox="0 0 120 140">
         <rect x="23" y="58" width="74" height="62" rx="10"/>
@@ -931,7 +1034,6 @@
       </svg>
     </div>
 
-    <!-- Network Nodes -->
     <div class="tech-icon nodes">
       <svg viewBox="0 0 180 180">
         <path d="M25 90L70 35l50 28 35-38"/>
@@ -946,7 +1048,6 @@
       </svg>
     </div>
 
-    <!-- Signal -->
     <div class="tech-icon signal">
       <svg viewBox="0 0 150 150">
         <path d="M20 105h12"/>
@@ -960,7 +1061,6 @@
       </svg>
     </div>
 
-    <!-- Circuit -->
     <div class="tech-icon circuit">
       <svg viewBox="0 0 180 180">
         <path d="M20 40h55v35h35V40h50"/>
@@ -987,24 +1087,33 @@
         <span>NexoraVPN</span>
       </a>
 
-      <nav class="early-access.html">
-        <a href="features">Преимущества</a>
-        <a href="early-access.html">Тарифы</a>
-        <a href="how-it-works">Как это работает</a>
-        <a href="faq">FAQ</a>
+      <nav class="nav-links" id="navLinks">
+        <a href="#features">Преимущества</a>
+        <a href="#pricing">Тарифы</a>
+        <a href="#how">Как это работает</a>
+        <a href="#faq">FAQ</a>
         <a href="early-access.html" class="login">Войти</a>
       </nav>
 
-      <button class="menu-button" aria-label="Меню">☰</button>
+      <button
+        class="menu-button"
+        id="menuButton"
+        aria-label="Открыть меню"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
 
     </div>
   </header>
 
   <!-- =======================================================
-       HERO
+       MAIN
        ======================================================= -->
 
   <main>
+
+    <!-- HERO -->
 
     <section class="hero">
 
@@ -1026,13 +1135,15 @@
         </p>
 
         <div class="buttons">
-          <a href="early-access.html" class="btn btn-primary">
-  Начать пользоваться
-</a>
 
-          <a href="early-access.html" class="btn btn-secondary">
+          <a href="early-access.html" class="btn btn-primary">
+            Начать пользоваться
+          </a>
+
+          <a href="#features" class="btn btn-secondary">
             Узнать больше
           </a>
+
         </div>
 
         <div class="connection-card">
@@ -1040,6 +1151,7 @@
           <div class="connection-top">
 
             <div class="connection-left">
+
               <div class="connection-icon">🛡</div>
 
               <div>
@@ -1051,6 +1163,7 @@
                   Защищённое соединение
                 </div>
               </div>
+
             </div>
 
             <div class="connected">
@@ -1086,20 +1199,24 @@
 
     </section>
 
-    <!-- =====================================================
-         FEATURES
-         ===================================================== -->
+    <!-- FEATURES -->
 
     <section id="features">
 
       <div class="container">
 
         <div class="section-heading">
-          <h2>Всё необходимое.<br>Ничего лишнего.</h2>
+
+          <h2>
+            Всё необходимое.<br>
+            Ничего лишнего.
+          </h2>
+
           <p>
             NexoraVPN создан для простого и комфортного
             использования интернета.
           </p>
+
         </div>
 
         <div class="features">
@@ -1144,26 +1261,31 @@
 
     </section>
 
-    <!-- =====================================================
-         PRICING
-         ===================================================== -->
+    <!-- PRICING -->
 
     <section id="pricing">
 
       <div class="container">
 
         <div class="section-heading">
+
           <h2>Выберите свой тариф</h2>
+
           <p>
             Простые цены без сложных условий.
           </p>
+
         </div>
 
         <div class="pricing">
 
+          <!-- WEEK -->
+
           <div class="price-card">
 
-            <div class="price-name">Неделя</div>
+            <div class="price-name">
+              Неделя
+            </div>
 
             <div class="price">
               50 ₽
@@ -1174,11 +1296,16 @@
               Попробуйте NexoraVPN без долгосрочной подписки.
             </div>
 
-            <a href="#" class="btn btn-secondary price-button">
+            <a
+              href="early-access.html?plan=week"
+              class="btn btn-secondary price-button"
+            >
               Выбрать
             </a>
 
           </div>
+
+          <!-- MONTH -->
 
           <div class="price-card popular">
 
@@ -1186,7 +1313,9 @@
               Популярный
             </div>
 
-            <div class="price-name">Месяц</div>
+            <div class="price-name">
+              Месяц
+            </div>
 
             <div class="price">
               170 ₽
@@ -1197,15 +1326,22 @@
               Оптимальный вариант для постоянного использования.
             </div>
 
-            <a href="#" class="btn btn-primary price-button">
+            <a
+              href="early-access.html?plan=month"
+              class="btn btn-primary price-button"
+            >
               Выбрать
             </a>
 
           </div>
 
+          <!-- YEAR -->
+
           <div class="price-card">
 
-            <div class="price-name">Год</div>
+            <div class="price-name">
+              Год
+            </div>
 
             <div class="price">
               725 ₽
@@ -1216,9 +1352,12 @@
               Максимум удобства — одна подписка на целый год.
             </div>
 
-            <a href="early-access.html" class="btn btn-primary">
-  Выбрать тариф
-</a>
+            <a
+              href="early-access.html?plan=year"
+              class="btn btn-primary price-button"
+            >
+              Выбрать
+            </a>
 
           </div>
 
@@ -1228,19 +1367,22 @@
 
     </section>
 
-    <!-- =====================================================
-         HOW IT WORKS
-         ===================================================== -->
+    <!-- HOW IT WORKS -->
 
     <section id="how">
 
       <div class="container">
 
         <div class="section-heading">
-          <h2>Как это работает</h2>
+
+          <h2>
+            Как это работает
+          </h2>
+
           <p>
             Всего несколько шагов до защищённого соединения.
           </p>
+
         </div>
 
         <div class="steps">
@@ -1283,25 +1425,31 @@
 
     </section>
 
-    <!-- =====================================================
-         FAQ
-         ===================================================== -->
+    <!-- FAQ -->
 
     <section id="faq">
 
       <div class="container">
 
         <div class="section-heading">
-          <h2>Частые вопросы</h2>
+
+          <h2>
+            Частые вопросы
+          </h2>
+
           <p>
             Коротко отвечаем на самые важные вопросы.
           </p>
+
         </div>
 
         <div class="faq">
 
           <details>
-            <summary>Что такое NexoraVPN?</summary>
+            <summary>
+              Что такое NexoraVPN?
+            </summary>
+
             <div class="faq-answer">
               NexoraVPN — сервис VPN, который создаёт
               защищённое соединение между вашим устройством
@@ -1310,7 +1458,10 @@
           </details>
 
           <details>
-            <summary>На каких устройствах можно использовать VPN?</summary>
+            <summary>
+              На каких устройствах можно использовать VPN?
+            </summary>
+
             <div class="faq-answer">
               Мы планируем поддержку основных современных
               устройств и платформ.
@@ -1318,7 +1469,10 @@
           </details>
 
           <details>
-            <summary>Как получить доступ после оплаты?</summary>
+            <summary>
+              Как получить доступ после оплаты?
+            </summary>
+
             <div class="faq-answer">
               После запуска системы оплаты доступ будет
               автоматически привязан к вашему аккаунту.
@@ -1326,7 +1480,10 @@
           </details>
 
           <details>
-            <summary>Можно ли отменить подписку?</summary>
+            <summary>
+              Можно ли отменить подписку?
+            </summary>
+
             <div class="faq-answer">
               Условия отмены и продления будут указаны
               перед оформлением подписки.
@@ -1339,9 +1496,7 @@
 
     </section>
 
-    <!-- =====================================================
-         CTA
-         ===================================================== -->
+    <!-- CTA -->
 
     <section class="cta">
 
@@ -1359,7 +1514,10 @@
             свободы в интернете.
           </p>
 
-          <a href="#pricing" class="btn btn-primary">
+          <a
+            href="early-access.html"
+            class="btn btn-primary"
+          >
             Начать пользоваться
           </a>
 
@@ -1371,9 +1529,7 @@
 
   </main>
 
-  <!-- =======================================================
-       FOOTER
-       ======================================================= -->
+  <!-- FOOTER -->
 
   <footer>
 
@@ -1390,6 +1546,37 @@
     </div>
 
   </footer>
+
+  <!-- MOBILE MENU -->
+
+  <script>
+    const menuButton = document.getElementById("menuButton");
+    const navLinks = document.getElementById("navLinks");
+
+    menuButton.addEventListener("click", function () {
+      const isOpen = navLinks.classList.toggle("mobile-open");
+
+      menuButton.setAttribute(
+        "aria-expanded",
+        isOpen ? "true" : "false"
+      );
+
+      menuButton.textContent = isOpen ? "×" : "☰";
+    });
+
+    navLinks.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        navLinks.classList.remove("mobile-open");
+
+        menuButton.setAttribute(
+          "aria-expanded",
+          "false"
+        );
+
+        menuButton.textContent = "☰";
+      });
+    });
+  </script>
 
 </body>
 </html>
