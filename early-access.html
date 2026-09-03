@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#070707">
+  <meta name="description" content="Получите ранний доступ к NexoraVPN.">
+
+  <title>Ранний доступ — NexoraVPN</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #070707;
+      --card: #111111;
+      --text: #ffffff;
+      --muted: #969696;
+      --red: #ff3030;
+      --border: rgba(255,255,255,.09);
+    }
+
+    html {
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        Inter,
+        Arial,
+        sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* BACKGROUND */
+
+    .background {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .background::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(
+          circle at 50% 35%,
+          rgba(255,255,255,.045),
+          transparent 35%
+        ),
+        radial-gradient(
+          circle at 50% 100%,
+          rgba(255,48,48,.06),
+          transparent 40%
+        );
+    }
+
+    .icon {
+      position: absolute;
+      color: #777;
+      opacity: .13;
+    }
+
+    .icon svg {
+      width: 100%;
+      height: 100%;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .globe {
+      width: 270px;
+      height: 270px;
+      top: 5%;
+      left: -90px;
+    }
+
+    .wifi {
+      width: 150px;
+      height: 150px;
+      right: 8%;
+      top: 15%;
+    }
+
+    .shield {
+      width: 220px;
+      height: 220px;
+      right: -70px;
+      bottom: 8%;
+    }
+
+    .nodes {
+      width: 180px;
+      height: 180px;
+      left: 8%;
+      bottom: 4%;
+    }
+
+    /* PAGE */
+
+    .page {
+      width: min(1120px, calc(100% - 36px));
+      margin: auto;
+    }
+
+    /* HEADER */
+
+    header {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 800;
+      color: white;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      background: var(--red);
+      border-radius: 11px;
+      box-shadow: 0 0 30px rgba(255,48,48,.28);
+    }
+
+    .back {
+      padding: 10px 15px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #ddd;
+      text-decoration: none;
+      font-size: 14px;
+      transition: .2s ease;
+    }
+
+    .back:hover {
+      background: rgba(255,255,255,.06);
+      color: white;
+    }
+
+    /* MAIN */
+
+    main {
+      min-height: calc(100vh - 80px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 50px 0 90px;
+    }
+
+    .content {
+      width: min(720px, 100%);
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,.035);
+      color: #bdbdbd;
+      font-size: 13px;
+      margin-bottom: 25px;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 13px rgba(255,48,48,.8);
+    }
+
+    h1 {
+      font-size: clamp(48px, 8vw, 82px);
+      line-height: .95;
+      letter-spacing: -5px;
+      font-weight: 850;
+    }
+
+    h1 span {
+      color: var(--red);
+    }
+
+    .description {
+      max-width: 580px;
+      margin: 27px auto 35px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    /* CARD */
+
+    .access-card {
+      max-width: 570px;
+      margin: auto;
+      padding: 26px;
+      text-align: left;
+      background: rgba(16,16,16,.90);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.35);
+    }
+
+    .access-card h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .access-card > p {
+      color: #818181;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+
+    form {
+      display: flex;
+      gap: 10px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      height: 52px;
+      padding: 0 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      outline: none;
+      border-radius: 14px;
+      background: rgba(255,255,255,.045);
+      color: white;
+      font-size: 15px;
+      transition: border-color .2s ease;
+    }
+
+    input::placeholder {
+      color: #666;
+    }
+
+    input:focus {
+      border-color: rgba(255,48,48,.65);
+    }
+
+    button {
+      height: 52px;
+      padding: 0 22px;
+      border: none;
+      border-radius: 14px;
+      background: var(--red);
+      color: white;
+      font-size: 14px;
+      font-weight: 750;
+      cursor: pointer;
+      box-shadow: 0 12px 35px rgba(255,48,48,.20);
+      transition: transform .2s ease, background .2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      background: #ff4545;
+    }
+
+    .privacy {
+      margin-top: 15px;
+      text-align: center;
+      color: #656565;
+      font-size: 12px;
+    }
+
+    /* SUCCESS */
+
+    .success {
+      display: none;
+      padding: 16px;
+      border: 1px solid rgba(54,216,120,.20);
+      border-radius: 15px;
+      background: rgba(54,216,120,.06);
+      color: #66e69a;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .success.show {
+      display: block;
+    }
+
+    /* INFO */
+
+    .info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .info-item {
+      padding: 15px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.045);
+    }
+
+    .info-number {
+      color: var(--red);
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .info-text {
+      color: #777;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    /* FOOTER */
+
+    footer {
+      padding: 30px 0;
+      text-align: center;
+      color: #555;
+      font-size: 12px;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 600px) {
+      .page {
+        width: min(100% - 28px, 1120px);
+      }
+
+      header {
+        height: 70px;
+      }
+
+      main {
+        min-height: calc(100vh - 70px);
+        padding-top: 30px;
+      }
+
+      h1 {
+        font-size: clamp(46px, 15vw, 68px);
+        letter-spacing: -3.5px;
+      }
+
+      .description {
+        font-size: 16px;
+      }
+
+      .access-card {
+        padding: 20px;
+      }
+
+      form {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .info {
+        grid-template-columns: 1fr;
+      }
+
+      .globe {
+        width: 190px;
+        height: 190px;
+      }
+
+      .shield {
+        width: 150px;
+        height: 150px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- BACKGROUND -->
+
+  <div class="background" aria-hidden="true">
+
+    <!-- GLOBE -->
+
+    <div class="icon globe">
+      <svg viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="78"/>
+        <ellipse cx="100" cy="100" rx="34" ry="78"/>
+        <path d="M22 100h156"/>
+        <path d="M31 67h138"/>
+        <path d="M31 133h138"/>
+        <path d="M100 22v156"/>
+      </svg>
+    </div>
+
+    <!-- WIFI -->
+
+    <div class="icon wifi">
+      <svg viewBox="0 0 120 120">
+        <path d="M15 43c28-25 62-25 90 0"/>
+        <path d="M29 59c19-17 43-17 62 0"/>
+        <path d="M44 75c10-9 22-9 32 0"/>
+        <circle cx="60" cy="91" r="3"/>
+      </svg>
+    </div>
+
+    <!-- SHIELD -->
+
+    <div class="icon shield">
+      <svg viewBox="0 0 200 230">
+        <path d="M100 15l72 28v57c0 54-34 92-72 115C62 192 28 154 28 100V43z"/>
+        <path d="M62 112l25 25 52-55"/>
+      </svg>
+    </div>
+
+    <!-- NODES -->
+
+    <div class="icon nodes">
+      <svg viewBox="0 0 180 180">
+        <path d="M25 90L70 35l50 28 35-38"/>
+        <path d="M25 90l50 47 45-74"/>
+        <path d="M75 137l60 12"/>
+        <circle cx="25" cy="90" r="7"/>
+        <circle cx="70" cy="35" r="7"/>
+        <circle cx="120" cy="63" r="7"/>
+        <circle cx="155" cy="25" r="7"/>
+        <circle cx="75" cy="137" r="7"/>
+        <circle cx="135" cy="149" r="7"/>
+      </svg>
+    </div>
+
+  </div>
+
+  <div class="page">
+
+    <header>
+
+      <a href="index.html" class="logo">
+        <span class="logo-mark">N</span>
+        NexoraVPN
+      </a>
+
+      <a href="index.html" class="back">
+        ← На главную
+      </a>
+
+    </header>
+
+    <main>
+
+      <div class="content">
+
+        <div class="badge">
+          <span class="badge-dot"></span>
+          Early Access
+        </div>
+
+        <h1>
+          Будь среди<br>
+          <span>первых.</span>
+        </h1>
+
+        <p class="description">
+          NexoraVPN сейчас находится в разработке.
+          Оставь свой email, чтобы узнать о запуске
+          и получить ранний доступ.
+        </p>
+
+        <div class="access-card">
+
+          <div id="form-container">
+
+            <h2>Получить ранний доступ</h2>
+
+            <p>
+              Мы сообщим тебе, когда NexoraVPN будет готов.
+            </p>
+
+            <form id="access-form">
+
+              <input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                required
+              >
+
+              <button type="submit">
+                Получить доступ
+              </button>
+
+            </form>
+
+            <div class="privacy">
+              Никакого спама. Только новости NexoraVPN.
+            </div>
+
+          </div>
+
+          <div id="success" class="success">
+            ✓ Спасибо! Ты добавлен в список раннего доступа.
+          </div>
+
+          <div class="info">
+
+            <div class="info-item">
+              <div class="info-number">⚡</div>
+              <div class="info-text">
+                Быстрый запуск
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-number">🔒</div>
+              <div class="info-text">
+                Защищённое соединение
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-number">🌐</div>
+              <div class="info-text">
+                Свобода интернета
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+    <footer>
+      © 2026 NexoraVPN
+    </footer>
+
+  </div>
+
+  <script>
+    const form = document.getElementById("access-form");
+    const formContainer = document.getElementById("form-container");
+    const success = document.getElementById("success");
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value;
+
+      if (email) {
+        formContainer.style.display = "none";
+        success.classList.add("show");
+      }
+    });
+  </script>
+
+</body>
+</html>
