@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070707">
+
+  <title>Вход — NexoraVPN</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: #070707;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Arial, sans-serif;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      padding: 30px;
+      border-radius: 24px;
+      background: #101010;
+      border: 1px solid rgba(255,255,255,.09);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .logo span {
+      color: #ff3030;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .subtitle {
+      margin: 0 0 25px;
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    input {
+      width: 100%;
+      height: 52px;
+      padding: 0 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.05);
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #ff3030;
+    }
+
+    button {
+      height: 52px;
+      border: 0;
+      border-radius: 14px;
+      background: #ff3030;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+    }
+
+    .message {
+      display: none;
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .message.error {
+      display: block;
+      background: rgba(255,48,48,.1);
+      color: #ff7777;
+    }
+
+    .message.success {
+      display: block;
+      background: rgba(69,223,135,.1);
+      color: #66e69a;
+    }
+
+    .register {
+      margin-top: 22px;
+      text-align: center;
+      color: #777;
+      font-size: 14px;
+    }
+
+    .register a {
+      color: #ff3030;
+      text-decoration: none;
+    }
+
+    .back {
+      display: block;
+      margin-top: 25px;
+      text-align: center;
+      color: #777;
+      text-decoration: none;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+
+    <div class="logo">
+      <span>N</span> NexoraVPN
+    </div>
+
+    <h1>С возвращением</h1>
+
+    <p class="subtitle">
+      Войди в аккаунт NexoraVPN, чтобы открыть личный кабинет.
+    </p>
+
+    <form id="login-form">
+
+      <input
+        id="email"
+        type="email"
+        placeholder="Email"
+        autocomplete="email"
+        required
+      >
+
+      <input
+        id="password"
+        type="password"
+        placeholder="Пароль"
+        autocomplete="current-password"
+        required
+      >
+
+      <button
+        id="submit-button"
+        type="submit"
+      >
+        Войти
+      </button>
+
+    </form>
+
+    <div id="message" class="message"></div>
+
+    <div class="register">
+      Нет аккаунта?
+      <a href="register.html">Зарегистрироваться</a>
+    </div>
+
+    <a href="index.html" class="back">
+      ← На главную
+    </a>
+
+  </div>
+
+  <script>
+    const form =
+      document.getElementById("login-form");
+
+    const message =
+      document.getElementById("message");
+
+    const button =
+      document.getElementById("submit-button");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const email =
+        document.getElementById("email").value.trim();
+
+      const password =
+        document.getElementById("password").value;
+
+      message.className = "message";
+      message.textContent = "";
+
+      button.disabled = true;
+      button.textContent = "Вход...";
+
+      try {
+
+        const response =
+          await fetch("/api/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              email,
+              password
+            })
+          });
+
+        const result =
+          await response.json();
+
+        if (result.success) {
+
+          message.textContent =
+            "Вход выполнен!";
+
+          message.classList.add("success");
+
+          setTimeout(() => {
+            window.location.href =
+              "account.html";
+          }, 700);
+
+        } else {
+
+          message.textContent =
+            result.error ||
+            "Неверный email или пароль";
+
+          message.classList.add("error");
+        }
+
+      } catch (error) {
+
+        message.textContent =
+          "Ошибка соединения. Попробуйте ещё раз.";
+
+        message.classList.add("error");
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent = "Войти";
+
+      }
+    });
+  </script>
+
+</body>
+</html>
