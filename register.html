@@ -1,347 +1,297 @@
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070707">
 
-    // =========================
-    // РЕГИСТРАЦИЯ
-    // =========================
-    if (url.pathname === "/api/register") {
+  <title>Регистрация — NexoraVPN</title>
 
-      if (request.method !== "POST") {
-        return Response.json(
-          { success: false, error: "Method not allowed" },
-          { status: 405 }
-        );
-      }
-
-      const ip =
-        request.headers.get("CF-Connecting-IP") || "unknown";
-
-      const { success } = await env.RATE_LIMITER.limit({
-        key: "register:" + ip
-      });
-
-      if (!success) {
-        return Response.json(
-          {
-            success: false,
-            error: "Слишком много попыток. Попробуйте позже."
-          },
-          { status: 429 }
-        );
-      }
-
-      const contentType =
-        request.headers.get("content-type") || "";
-
-      if (
-        !contentType
-          .toLowerCase()
-          .includes("application/json")
-      ) {
-        return Response.json(
-          {
-            success: false,
-            error: "Неверный формат запроса"
-          },
-          { status: 415 }
-        );
-      }
-
-      const contentLength = Number(
-        request.headers.get("content-length") || "0"
-      );
-
-      if (contentLength > 4096) {
-        return Response.json(
-          {
-            success: false,
-            error: "Слишком большой запрос"
-          },
-          { status: 413 }
-        );
-      }
-
-      try {
-        const data = await request.json();
-
-        if (
-          !data ||
-          typeof data.email !== "string" ||
-          typeof data.password !== "string"
-        ) {
-          return Response.json(
-            {
-              success: false,
-              error: "Email и пароль обязательны"
-            },
-            { status: 400 }
-          );
-        }
-
-        const email = data.email.trim().toLowerCase();
-        const password = data.password;
-
-        // Проверка email
-        if (email.length < 5 || email.length > 254) {
-          return Response.json(
-            {
-              success: false,
-              error: "Некорректный email"
-            },
-            { status: 400 }
-          );
-        }
-
-        const emailRegex =
-          /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-        if (!emailRegex.test(email)) {
-          return Response.json(
-            {
-              success: false,
-              error: "Некорректный email"
-            },
-            { status: 400 }
-          );
-        }
-
-        // Минимальная длина пароля
-        if (password.length < 8 || password.length > 128) {
-          return Response.json(
-            {
-              success: false,
-              error: "Пароль должен содержать от 8 до 128 символов"
-            },
-            { status: 400 }
-          );
-        }
-
-        // Проверяем, существует ли пользователь
-        const existingUser = await env.DB
-          .prepare(
-            "SELECT id FROM users WHERE email = ? LIMIT 1"
-          )
-          .bind(email)
-          .first();
-
-        if (existingUser) {
-          return Response.json(
-            {
-              success: false,
-              error: "Этот email уже зарегистрирован"
-            },
-            { status: 409 }
-          );
-        }
-
-        // Хешируем пароль через Web Crypto
-        const encoder = new TextEncoder();
-
-        const passwordData =
-          encoder.encode(password);
-
-        const hashBuffer =
-          await crypto.subtle.digest(
-            "SHA-256",
-            passwordData
-          );
-
-        const hashArray =
-          Array.from(new Uint8Array(hashBuffer));
-
-        const passwordHash =
-          hashArray
-            .map((b) =>
-              b.toString(16).padStart(2, "0")
-            )
-            .join("");
-
-        // Создаём пользователя
-        await env.DB
-          .prepare(
-            `INSERT INTO users
-              (email, password_hash)
-             VALUES (?, ?)`
-          )
-          .bind(email, passwordHash)
-          .run();
-
-        return Response.json(
-          {
-            success: true,
-            message: "Регистрация успешна!"
-          },
-          { status: 201 }
-        );
-
-      } catch (error) {
-        if (String(error).includes("UNIQUE")) {
-          return Response.json(
-            {
-              success: false,
-              error: "Этот email уже зарегистрирован"
-            },
-            { status: 409 }
-          );
-        }
-
-        return Response.json(
-          {
-            success: false,
-            error: "Не удалось зарегистрировать пользователя"
-          },
-          { status: 500 }
-        );
-      }
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    // =========================
-    // EARLY ACCESS
-    // =========================
-    if (url.pathname === "/api/early-access") {
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: #070707;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Arial, sans-serif;
+    }
 
-      const ip =
-        request.headers.get("CF-Connecting-IP") || "unknown";
+    .card {
+      width: 100%;
+      max-width: 420px;
+      padding: 30px;
+      border-radius: 24px;
+      background: #101010;
+      border: 1px solid rgba(255,255,255,.09);
+    }
 
-      const { success } = await env.RATE_LIMITER.limit({
-        key: "early-access:" + ip
-      });
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 22px;
+      font-weight: 800;
+    }
 
-      if (!success) {
-        return Response.json(
-          {
-            success: false,
-            error: "Слишком много запросов. Попробуйте позже."
-          },
-          { status: 429 }
-        );
+    .logo span {
+      color: #ff3030;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .subtitle {
+      margin: 0 0 25px;
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    input {
+      width: 100%;
+      height: 52px;
+      padding: 0 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.05);
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #ff3030;
+    }
+
+    button {
+      height: 52px;
+      border: 0;
+      border-radius: 14px;
+      background: #ff3030;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+    }
+
+    .message {
+      display: none;
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .message.error {
+      display: block;
+      background: rgba(255,48,48,.1);
+      color: #ff7777;
+    }
+
+    .message.success {
+      display: block;
+      background: rgba(69,223,135,.1);
+      color: #66e69a;
+    }
+
+    .login {
+      margin-top: 22px;
+      text-align: center;
+      color: #777;
+      font-size: 14px;
+    }
+
+    .login a {
+      color: #ff3030;
+      text-decoration: none;
+    }
+
+    .back {
+      display: block;
+      margin-top: 25px;
+      text-align: center;
+      color: #777;
+      text-decoration: none;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+
+    <div class="logo">
+      <span>N</span> NexoraVPN
+    </div>
+
+    <h1>Создать аккаунт</h1>
+
+    <p class="subtitle">
+      Создай аккаунт NexoraVPN, чтобы управлять подпиской и VPN-доступом.
+    </p>
+
+    <form id="register-form">
+
+      <input
+        id="email"
+        type="email"
+        placeholder="Email"
+        autocomplete="email"
+        required
+      >
+
+      <input
+        id="password"
+        type="password"
+        placeholder="Пароль (минимум 8 символов)"
+        autocomplete="new-password"
+        minlength="8"
+        required
+      >
+
+      <input
+        id="confirm-password"
+        type="password"
+        placeholder="Повтори пароль"
+        autocomplete="new-password"
+        minlength="8"
+        required
+      >
+
+      <button
+        id="submit-button"
+        type="submit"
+      >
+        Создать аккаунт
+      </button>
+
+    </form>
+
+    <div id="message" class="message"></div>
+
+    <div class="login">
+      Уже есть аккаунт?
+      <a href="login.html">Войти</a>
+    </div>
+
+    <a href="index.html" class="back">
+      ← На главную
+    </a>
+
+  </div>
+
+  <script>
+    const form = document.getElementById("register-form");
+    const message = document.getElementById("message");
+    const button = document.getElementById("submit-button");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const email =
+        document.getElementById("email").value.trim();
+
+      const password =
+        document.getElementById("password").value;
+
+      const confirmPassword =
+        document.getElementById("confirm-password").value;
+
+      message.className = "message";
+      message.textContent = "";
+
+      if (password !== confirmPassword) {
+        message.textContent =
+          "Пароли не совпадают";
+        message.classList.add("error");
+        return;
       }
 
-      if (request.method !== "POST") {
-        return Response.json(
-          { success: false, error: "Method not allowed" },
-          { status: 405 }
-        );
+      if (password.length < 8) {
+        message.textContent =
+          "Пароль должен содержать минимум 8 символов";
+        message.classList.add("error");
+        return;
       }
 
-      const contentType =
-        request.headers.get("content-type") || "";
-
-      if (
-        !contentType
-          .toLowerCase()
-          .includes("application/json")
-      ) {
-        return Response.json(
-          {
-            success: false,
-            error: "Неверный формат запроса"
-          },
-          { status: 415 }
-        );
-      }
-
-      const contentLength = Number(
-        request.headers.get("content-length") || "0"
-      );
-
-      if (contentLength > 2048) {
-        return Response.json(
-          {
-            success: false,
-            error: "Слишком большой запрос"
-          },
-          { status: 413 }
-        );
-      }
+      button.disabled = true;
+      button.textContent = "Создание...";
 
       try {
-        const data = await request.json();
 
-        if (
-          !data ||
-          typeof data.email !== "string"
-        ) {
-          return Response.json(
-            {
-              success: false,
-              error: "Email не указан"
+        const response =
+          await fetch("/api/register", {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json"
             },
-            { status: 400 }
-          );
+            body: JSON.stringify({
+              email,
+              password
+            })
+          });
+
+        const result =
+          await response.json();
+
+        if (result.success) {
+
+          message.textContent =
+            "Аккаунт успешно создан!";
+          message.classList.add("success");
+
+          form.reset();
+
+        } else {
+
+          message.textContent =
+            result.error ||
+            "Не удалось создать аккаунт";
+
+          message.classList.add("error");
         }
-
-        const email = data.email
-          .trim()
-          .toLowerCase();
-
-        if (
-          email.length < 5 ||
-          email.length > 254
-        ) {
-          return Response.json(
-            {
-              success: false,
-              error: "Некорректный email"
-            },
-            { status: 400 }
-          );
-        }
-
-        const emailRegex =
-          /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-        if (!emailRegex.test(email)) {
-          return Response.json(
-            {
-              success: false,
-              error: "Некорректный email"
-            },
-            { status: 400 }
-          );
-        }
-
-        await env.DB
-          .prepare(
-            "INSERT INTO early_access (email) VALUES (?)"
-          )
-          .bind(email)
-          .run();
-
-        return Response.json({
-          success: true,
-          message:
-            "Вы добавлены в список раннего доступа!"
-        });
 
       } catch (error) {
 
-        if (String(error).includes("UNIQUE")) {
-          return Response.json(
-            {
-              success: false,
-              error:
-                "Этот email уже зарегистрирован"
-            },
-            { status: 409 }
-          );
-        }
+        message.textContent =
+          "Ошибка соединения. Попробуйте ещё раз.";
 
-        return Response.json(
-          {
-            success: false,
-            error:
-              "Не удалось обработать запрос"
-          },
-          { status: 500 }
-        );
+        message.classList.add("error");
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent =
+          "Создать аккаунт";
+
       }
-    }
 
-    // =========================
-    // САЙТ
-    // =========================
-    return env.ASSETS.fetch(request);
-  }
-};
+    });
+  </script>
+
+</body>
+</html>
