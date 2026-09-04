@@ -1,0 +1,7 @@
+name = "nexoravpn"
+compatibility_date = "2026-09-04"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "nexoravpn-db"
+database_id = "76861749-b499-498b-a9fc-1d14b95e8ef1"
