@@ -717,7 +717,73 @@ function generateToken() {
         );
       }
     }
+    // =========================
+    // ЗАЩИТА ЛИЧНОГО КАБИНЕТА
+    // =========================
+    if (url.pathname === "/account.html") {
 
+      try {
+        const cookieHeader =
+          request.headers.get("Cookie") || "";
+
+        const match =
+          cookieHeader.match(
+            /(?:^|;\s*)nexora_session=([^;]+)/
+          );
+
+        if (!match) {
+          return Response.redirect(
+            new URL("/login.html", request.url),
+            302
+          );
+        }
+
+        const sessionToken = match[1];
+
+        const tokenHash =
+          await hashToken(sessionToken);
+
+        const session = await env.DB
+          .prepare(
+            `SELECT expires_at
+             FROM sessions
+             WHERE token_hash = ?
+             LIMIT 1`
+          )
+          .bind(tokenHash)
+          .first();
+
+        if (!session) {
+          return Response.redirect(
+            new URL("/login.html", request.url),
+            302
+          );
+        }
+
+        if (
+          new Date(session.expires_at).getTime() <=
+          Date.now()
+        ) {
+          await env.DB
+            .prepare(
+              "DELETE FROM sessions WHERE token_hash = ?"
+            )
+            .bind(tokenHash)
+            .run();
+
+          return Response.redirect(
+            new URL("/login.html", request.url),
+            302
+          );
+        }
+
+      } catch (error) {
+        return Response.redirect(
+          new URL("/login.html", request.url),
+          302
+        );
+      }
+    }
     // =========================
     // САЙТ
     // =========================
