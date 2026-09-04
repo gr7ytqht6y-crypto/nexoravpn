@@ -1,7 +1,132 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // =========================
+    // ВХОД
+    // =========================
+    if (url.pathname === "/api/login") {
 
+      if (request.method !== "POST") {
+        return Response.json(
+          { success: false, error: "Method not allowed" },
+          { status: 405 }
+        );
+      }
+
+      const ip =
+        request.headers.get("CF-Connecting-IP") || "unknown";
+
+      const { success: rateLimitSuccess } =
+        await env.RATE_LIMITER.limit({
+          key: "login:" + ip
+        });
+
+      if (!rateLimitSuccess) {
+        return Response.json(
+          {
+            success: false,
+            error: "Слишком много попыток. Попробуйте позже."
+          },
+          { status: 429 }
+        );
+      }
+
+      try {
+        const data = await request.json();
+
+        if (
+          !data ||
+          typeof data.email !== "string" ||
+          typeof data.password !== "string"
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error: "Email и пароль обязательны"
+            },
+            { status: 400 }
+          );
+        }
+
+        const email =
+          data.email.trim().toLowerCase();
+
+        const password =
+          data.password;
+
+        const user = await env.DB
+          .prepare(
+            `SELECT id, email, password_hash
+             FROM users
+             WHERE email = ?
+             LIMIT 1`
+          )
+          .bind(email)
+          .first();
+
+        if (!user) {
+          return Response.json(
+            {
+              success: false,
+              error: "Неверный email или пароль"
+            },
+            { status: 401 }
+          );
+        }
+
+        // Проверяем пароль
+        const encoder = new TextEncoder();
+
+        const passwordData =
+          encoder.encode(password);
+
+        const hashBuffer =
+          await crypto.subtle.digest(
+            "SHA-256",
+            passwordData
+          );
+
+        const hashArray =
+          Array.from(
+            new Uint8Array(hashBuffer)
+          );
+
+        const passwordHash =
+          hashArray
+            .map((b) =>
+              b.toString(16).padStart(2, "0")
+            )
+            .join("");
+
+        if (passwordHash !== user.password_hash) {
+          return Response.json(
+            {
+              success: false,
+              error: "Неверный email или пароль"
+            },
+            { status: 401 }
+          );
+        }
+
+        return Response.json({
+          success: true,
+          message: "Вход выполнен успешно",
+          user: {
+            id: user.id,
+            email: user.email
+          }
+        });
+
+      } catch (error) {
+        return Response.json(
+          {
+            success: false,
+            error: "Не удалось выполнить вход"
+          },
+          { status: 500 }
+        );
+      }
+    }
     // =========================
     // РЕГИСТРАЦИЯ
     // =========================
