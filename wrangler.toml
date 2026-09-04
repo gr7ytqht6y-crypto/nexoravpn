@@ -10,3 +10,11 @@ binding = "ASSETS"
 binding = "DB"
 database_name = "nexoravpn-db"
 database_id = "76861749-b499-498b-a9fc-1d14b95e8ef1"
+
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 5
+  period = 60
