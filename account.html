@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070707">
+
+  <title>Личный кабинет — NexoraVPN</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #070707;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Arial, sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 25px 20px 50px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 35px;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .logo span {
+      color: #ff3030;
+    }
+
+    .logout {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: #aaa;
+      padding: 10px 15px;
+      border-radius: 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+
+    .welcome {
+      margin: 0 0 25px;
+      color: #888;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+
+    .card {
+      padding: 22px;
+      border-radius: 20px;
+      background: #101010;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .card.full {
+      grid-column: 1 / -1;
+    }
+
+    .label {
+      color: #777;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .inactive {
+      color: #ff5555;
+    }
+
+    .vpn-box {
+      margin-top: 25px;
+      padding: 25px;
+      border-radius: 20px;
+      background: linear-gradient(
+        135deg,
+        #151515,
+        #0d0d0d
+      );
+      border: 1px solid rgba(255,48,48,.18);
+    }
+
+    .vpn-box h2 {
+      margin: 0 0 8px;
+      font-size: 21px;
+    }
+
+    .vpn-box p {
+      margin: 0;
+      color: #888;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .vpn-button {
+      width: 100%;
+      height: 50px;
+      margin-top: 18px;
+      border: 0;
+      border-radius: 14px;
+      background: #292929;
+      color: #777;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: not-allowed;
+    }
+
+    .notice {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      color: #777;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card.full {
+        grid-column: auto;
+      }
+
+      header {
+        align-items: flex-start;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <header>
+      <div class="logo">
+        <span>N</span> NexoraVPN
+      </div>
+
+      <button class="logout" id="logout">
+        Выйти
+      </button>
+    </header>
+
+    <h1>Личный кабинет</h1>
+
+    <p class="welcome">
+      Управление аккаунтом NexoraVPN
+    </p>
+
+    <div class="grid">
+
+      <div class="card">
+        <div class="label">Email</div>
+        <div class="value" id="email">
+          Загрузка...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">Статус подписки</div>
+        <div class="value inactive" id="status">
+          Не активна
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">Тариф</div>
+        <div class="value" id="plan">
+          —
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">Действует до</div>
+        <div class="value" id="expires">
+          —
+        </div>
+      </div>
+
+      <div class="card full">
+
+        <div class="vpn-box">
+
+          <h2>🛡️ Мой VPN</h2>
+
+          <p>
+            После активации подписки здесь появится
+            доступ к VPN и конфигурации WireGuard.
+          </p>
+
+          <button class="vpn-button" disabled>
+            VPN пока недоступен
+          </button>
+
+        </div>
+
+        <div class="notice">
+          Сейчас VPN-сервер ещё находится в процессе
+          подготовки. Как только инфраструктура будет
+          готова, этот раздел будет подключён
+          автоматически.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    /*
+     * Временная версия кабинета.
+     * Настоящая проверка сессии будет добавлена
+     * следующим этапом через Cloudflare Worker.
+     */
+
+    const email =
+      localStorage.getItem("nexora_email");
+
+    if (email) {
+      document.getElementById("email").textContent =
+        email;
+    } else {
+      document.getElementById("email").textContent =
+        "Не авторизован";
+    }
+
+    document
+      .getElementById("logout")
+      .addEventListener("click", () => {
+
+        localStorage.removeItem("nexora_email");
+
+        window.location.href =
+          "login.html";
+
+      });
+
+  </script>
+
+</body>
+</html>
