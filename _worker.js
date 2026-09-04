@@ -3,14 +3,64 @@ export default {
     const url = new URL(request.url);
 
     // API раннего доступа
-    if (url.pathname === "/api/early-access" && request.method === "POST") {
+    if (url.pathname === "/api/early-access") {
+      // Разрешаем только POST
+      if (request.method !== "POST") {
+        return Response.json(
+          { success: false, error: "Method not allowed" },
+          { status: 405 }
+        );
+      }
+
+      // Проверяем Content-Type
+      const contentType = request.headers.get("content-type") || "";
+
+      if (!contentType.toLowerCase().includes("application/json")) {
+        return Response.json(
+          { success: false, error: "Неверный формат запроса" },
+          { status: 415 }
+        );
+      }
+
+      // Ограничиваем размер запроса
+      const contentLength = Number(
+        request.headers.get("content-length") || "0"
+      );
+
+      if (contentLength > 2048) {
+        return Response.json(
+          { success: false, error: "Слишком большой запрос" },
+          { status: 413 }
+        );
+      }
+
       try {
         const data = await request.json();
-        const email = data.email?.trim().toLowerCase();
 
-        if (!email || !email.includes("@")) {
+        if (!data || typeof data.email !== "string") {
           return Response.json(
-            { success: false, error: "Введите корректный email" },
+            { success: false, error: "Email не указан" },
+            { status: 400 }
+          );
+        }
+
+        const email = data.email.trim().toLowerCase();
+
+        // Ограничение длины
+        if (email.length < 5 || email.length > 254) {
+          return Response.json(
+            { success: false, error: "Некорректный email" },
+            { status: 400 }
+          );
+        }
+
+        // Базовая проверка email
+        const emailRegex =
+          /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+        if (!emailRegex.test(email)) {
+          return Response.json(
+            { success: false, error: "Некорректный email" },
             { status: 400 }
           );
         }
@@ -28,6 +78,7 @@ export default {
         });
 
       } catch (error) {
+        // Email уже существует
         if (String(error).includes("UNIQUE")) {
           return Response.json(
             {
@@ -38,17 +89,18 @@ export default {
           );
         }
 
+        // Не раскрываем внутреннюю ошибку пользователю
         return Response.json(
           {
             success: false,
-            error: "Не удалось сохранить email"
+            error: "Не удалось обработать запрос"
           },
           { status: 500 }
         );
       }
     }
 
-    // Все остальные запросы отправляем к сайту
+    // Все остальные запросы → сайт
     return env.ASSETS.fetch(request);
   }
 };
