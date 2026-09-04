@@ -62,6 +62,63 @@ function generateToken() {
   async fetch(request, env) {
     const url = new URL(request.url);
         // =========================
+    // АДМИН: СПИСОК ПОЛЬЗОВАТЕЛЕЙ
+    // =========================
+    if (url.pathname === "/api/admin/users") {
+
+      if (request.method !== "GET") {
+        return Response.json(
+          {
+            success: false,
+            error: "Method not allowed"
+          },
+          { status: 405 }
+        );
+      }
+
+      try {
+        const admin = await getAdminUser(request, env);
+
+        if (!admin) {
+          return Response.json(
+            {
+              success: false,
+              error: "Доступ запрещён"
+            },
+            { status: 403 }
+          );
+        }
+
+        const users = await env.DB
+          .prepare(
+            `SELECT
+               id,
+               email,
+               created_at,
+               subscription_status,
+               subscription_plan,
+               subscription_expires_at
+             FROM users
+             ORDER BY id DESC`
+          )
+          .all();
+
+        return Response.json({
+          success: true,
+          users: users.results || []
+        });
+
+      } catch (error) {
+        return Response.json(
+          {
+            success: false,
+            error: "Не удалось получить пользователей"
+          },
+          { status: 500 }
+        );
+      }
+    }
+        // =========================
     // ВЫХОД ИЗ АККАУНТА
     // =========================
     if (url.pathname === "/api/logout") {
