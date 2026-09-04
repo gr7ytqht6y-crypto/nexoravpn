@@ -21,6 +21,124 @@ function generateToken() {
 }export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+       // =========================
+    // ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ
+    // =========================
+    if (url.pathname === "/api/me") {
+
+      if (request.method !== "GET") {
+        return Response.json(
+          {
+            success: false,
+            error: "Method not allowed"
+          },
+          { status: 405 }
+        );
+      }
+
+      try {
+        const cookieHeader =
+          request.headers.get("Cookie") || "";
+
+        const match =
+          cookieHeader.match(
+            /(?:^|;\s*)nexora_session=([^;]+)/
+          );
+
+        if (!match) {
+          return Response.json(
+            {
+              success: false,
+              error: "Не авторизован"
+            },
+            { status: 401 }
+          );
+        }
+
+        const sessionToken = match[1];
+
+        const tokenHash =
+          await hashToken(sessionToken);
+
+        const session = await env.DB
+          .prepare(
+            `SELECT
+               sessions.user_id,
+               sessions.expires_at,
+               users.email,
+               users.subscription_status,
+               users.subscription_plan,
+               users.subscription_expires_at
+             FROM sessions
+             INNER JOIN users
+               ON users.id = sessions.user_id
+             WHERE sessions.token_hash = ?
+             LIMIT 1`
+          )
+          .bind(tokenHash)
+          .first();
+
+        if (!session) {
+          return Response.json(
+            {
+              success: false,
+              error: "Сессия недействительна"
+            },
+            { status: 401 }
+          );
+        }
+
+        if (
+          new Date(session.expires_at).getTime() <=
+          Date.now()
+        ) {
+          await env.DB
+            .prepare(
+              "DELETE FROM sessions WHERE token_hash = ?"
+            )
+            .bind(tokenHash)
+            .run();
+
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Сессия истекла"
+            }),
+            {
+              status: 401,
+              headers: {
+                "Set-Cookie":
+                  "nexora_session=; HttpOnly; Secure; " +
+                  "SameSite=Lax; Path=/; Max-Age=0"
+              }
+            }
+          );
+        }
+
+        return Response.json({
+          success: true,
+          user: {
+            id: session.user_id,
+            email: session.email,
+            subscription_status:
+              session.subscription_status,
+            subscription_plan:
+              session.subscription_plan,
+            subscription_expires_at:
+              session.subscription_expires_at
+          }
+        });
+
+      } catch (error) {
+        return Response.json(
+          {
+            success: false,
+            error: "Не удалось проверить сессию"
+          },
+          { status: 500 }
+        );
+      }
+    }
     // =========================
     // ВХОД
     // =========================
