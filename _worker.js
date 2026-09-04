@@ -4,6 +4,25 @@ export default {
 
     // API раннего доступа
     if (url.pathname === "/api/early-access") {
+
+      // Rate limiting: 5 запросов в минуту с одного IP
+      const ip =
+        request.headers.get("CF-Connecting-IP") || "unknown";
+
+      const { success } = await env.RATE_LIMITER.limit({
+        key: ip
+      });
+
+      if (!success) {
+        return Response.json(
+          {
+            success: false,
+            error: "Слишком много запросов. Попробуйте позже."
+          },
+          { status: 429 }
+        );
+      }
+
       // Разрешаем только POST
       if (request.method !== "POST") {
         return Response.json(
@@ -13,11 +32,19 @@ export default {
       }
 
       // Проверяем Content-Type
-      const contentType = request.headers.get("content-type") || "";
+      const contentType =
+        request.headers.get("content-type") || "";
 
-      if (!contentType.toLowerCase().includes("application/json")) {
+      if (
+        !contentType
+          .toLowerCase()
+          .includes("application/json")
+      ) {
         return Response.json(
-          { success: false, error: "Неверный формат запроса" },
+          {
+            success: false,
+            error: "Неверный формат запроса"
+          },
           { status: 415 }
         );
       }
@@ -29,7 +56,10 @@ export default {
 
       if (contentLength > 2048) {
         return Response.json(
-          { success: false, error: "Слишком большой запрос" },
+          {
+            success: false,
+            error: "Слишком большой запрос"
+          },
           { status: 413 }
         );
       }
@@ -37,19 +67,33 @@ export default {
       try {
         const data = await request.json();
 
-        if (!data || typeof data.email !== "string") {
+        if (
+          !data ||
+          typeof data.email !== "string"
+        ) {
           return Response.json(
-            { success: false, error: "Email не указан" },
+            {
+              success: false,
+              error: "Email не указан"
+            },
             { status: 400 }
           );
         }
 
-        const email = data.email.trim().toLowerCase();
+        const email = data.email
+          .trim()
+          .toLowerCase();
 
         // Ограничение длины
-        if (email.length < 5 || email.length > 254) {
+        if (
+          email.length < 5 ||
+          email.length > 254
+        ) {
           return Response.json(
-            { success: false, error: "Некорректный email" },
+            {
+              success: false,
+              error: "Некорректный email"
+            },
             { status: 400 }
           );
         }
@@ -60,7 +104,10 @@ export default {
 
         if (!emailRegex.test(email)) {
           return Response.json(
-            { success: false, error: "Некорректный email" },
+            {
+              success: false,
+              error: "Некорректный email"
+            },
             { status: 400 }
           );
         }
@@ -74,7 +121,8 @@ export default {
 
         return Response.json({
           success: true,
-          message: "Вы добавлены в список раннего доступа!"
+          message:
+            "Вы добавлены в список раннего доступа!"
         });
 
       } catch (error) {
@@ -83,7 +131,8 @@ export default {
           return Response.json(
             {
               success: false,
-              error: "Этот email уже зарегистрирован"
+              error:
+                "Этот email уже зарегистрирован"
             },
             { status: 409 }
           );
@@ -93,7 +142,8 @@ export default {
         return Response.json(
           {
             success: false,
-            error: "Не удалось обработать запрос"
+            error:
+              "Не удалось обработать запрос"
           },
           { status: 500 }
         );
