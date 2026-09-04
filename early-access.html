@@ -830,65 +830,37 @@
 
   <script>
     const form = document.getElementById("access-form");
-    const formContainer = document.getElementById("form-container");
-    const success = document.getElementById("success");
+const formContainer = document.getElementById("form-container");
+const success = document.getElementById("success");
 
-    const selectedPlan = document.getElementById("selected-plan");
-    const selectedPlanName = document.getElementById("selected-plan-name");
-    const selectedPlanPrice = document.getElementById("selected-plan-price");
+form.addEventListener("submit", async function(event) {
+  event.preventDefault();
 
-    /*
-      Получаем выбранный тариф из URL:
-      ?plan=week
-      ?plan=month
-      ?plan=year
-    */
+  const emailInput = document.getElementById("email");
+  const email = emailInput.value.trim();
 
-    const params = new URLSearchParams(window.location.search);
-    const plan = params.get("plan");
-
-    const plans = {
-      week: {
-        name: "Неделя",
-        price: "50 ₽ / 7 дней"
+  try {
+    const response = await fetch("/api/early-access", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
+      body: JSON.stringify({ email })
+    });
 
-      month: {
-        name: "Месяц",
-        price: "170 ₽ / месяц"
-      },
+    const result = await response.json();
 
-      year: {
-        name: "Год",
-        price: "725 ₽ / год"
-      }
-    };
-
-    if (plan && plans[plan]) {
-      selectedPlan.classList.add("show");
-
-      selectedPlanName.textContent = plans[plan].name;
-      selectedPlanPrice.textContent = plans[plan].price;
-    }
-
-    /*
-      Пока форма работает как демонстрационная.
-      Реальное сохранение email подключим отдельно через
-      Cloudflare D1.
-    */
-
-    form.addEventListener("submit", function(event) {
-      event.preventDefault();
-
-      const email = document.getElementById("email").value.trim();
-
-      if (!email) {
-        return;
-      }
-
+    if (result.success) {
       formContainer.style.display = "none";
       success.classList.add("show");
-    });
+    } else {
+      alert(result.error || "Не удалось получить ранний доступ");
+    }
+
+  } catch (error) {
+    alert("Ошибка соединения. Попробуйте ещё раз.");
+  }
+});
   </script>
 
 </body>
