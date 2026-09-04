@@ -21,6 +21,90 @@ function generateToken() {
 }export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+        // =========================
+    // ВЫХОД ИЗ АККАУНТА
+    // =========================
+    if (url.pathname === "/api/logout") {
+
+      if (request.method !== "POST") {
+        return Response.json(
+          {
+            success: false,
+            error: "Method not allowed"
+          },
+          { status: 405 }
+        );
+      }
+
+      try {
+        const cookieHeader =
+          request.headers.get("Cookie") || "";
+
+        const match =
+          cookieHeader.match(
+            /(?:^|;\s*)nexora_session=([^;]+)/
+          );
+
+        // Если cookie нет — просто очищаем её
+        if (!match) {
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: "Вы вышли из аккаунта"
+            }),
+            {
+              status: 200,
+              headers: {
+                "Content-Type": "application/json",
+                "Set-Cookie":
+                  "nexora_session=; HttpOnly; Secure; " +
+                  "SameSite=Lax; Path=/; Max-Age=0"
+              }
+            }
+          );
+        }
+
+        const sessionToken = match[1];
+
+        const tokenHash =
+          await hashToken(sessionToken);
+
+        // Удаляем сессию из базы
+        await env.DB
+          .prepare(
+            "DELETE FROM sessions WHERE token_hash = ?"
+          )
+          .bind(tokenHash)
+          .run();
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Вы вышли из аккаунта"
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "Set-Cookie":
+                "nexora_session=; HttpOnly; Secure; " +
+                "SameSite=Lax; Path=/; Max-Age=0"
+            }
+          }
+        );
+
+      } catch (error) {
+
+        return Response.json(
+          {
+            success: false,
+            error: "Не удалось выполнить выход"
+          },
+          { status: 500 }
+        );
+
+      }
+    }
        // =========================
     // ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ
     // =========================
