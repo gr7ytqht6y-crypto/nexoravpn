@@ -246,35 +246,74 @@
 
   <script>
 
-    /*
-     * Временная версия кабинета.
-     * Настоящая проверка сессии будет добавлена
-     * следующим этапом через Cloudflare Worker.
-     */
+  async function loadAccount() {
 
-    const email =
-      localStorage.getItem("nexora_email");
+    try {
 
-    if (email) {
+      const response =
+        await fetch("/api/me", {
+          method: "GET",
+          credentials: "same-origin"
+        });
+
+      const result =
+        await response.json();
+
+      if (!result.success) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const user = result.user;
+
       document.getElementById("email").textContent =
-        email;
-    } else {
-      document.getElementById("email").textContent =
-        "Не авторизован";
+        user.email;
+
+      document.getElementById("status").textContent =
+        user.subscription_status === "active"
+          ? "Активна"
+          : "Не активна";
+
+      if (user.subscription_status === "active") {
+        document.getElementById("status")
+          .classList.remove("inactive");
+      }
+
+      document.getElementById("plan").textContent =
+        user.subscription_plan || "—";
+
+      document.getElementById("expires").textContent =
+        user.subscription_expires_at || "—";
+
+    } catch (error) {
+
+      window.location.href = "login.html";
+
     }
 
-    document
-      .getElementById("logout")
-      .addEventListener("click", () => {
+  }
 
-        localStorage.removeItem("nexora_email");
+  document
+    .getElementById("logout")
+    .addEventListener("click", async () => {
 
-        window.location.href =
-          "login.html";
+      try {
+        await fetch("/api/logout", {
+          method: "POST",
+          credentials: "same-origin"
+        });
+      } catch (error) {
+        // Даже если запрос завершился ошибкой,
+        // возвращаем пользователя на страницу входа.
+      }
 
-      });
+      window.location.href = "login.html";
 
-  </script>
+    });
+
+  loadAccount();
+
+</script>
 
 </body>
 </html>
