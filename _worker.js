@@ -128,14 +128,46 @@ function generateToken() {
           );
         }
 
-        return Response.json({
-          success: true,
-          message: "Вход выполнен успешно",
-          user: {
-            id: user.id,
-            email: user.email
+                // Создаём случайный токен сессии
+        const sessionToken = generateToken();
+
+        // В базе храним только хеш токена
+        const tokenHash = await hashToken(sessionToken);
+
+        // Сессия действует 30 дней
+        const expiresAt = new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000
+        ).toISOString();
+
+        await env.DB
+          .prepare(
+            `INSERT INTO sessions
+              (user_id, token_hash, expires_at)
+             VALUES (?, ?, ?)`
+          )
+          .bind(
+            user.id,
+            tokenHash,
+            expiresAt
+          )
+          .run();
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Вход выполнен успешно"
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "Set-Cookie":
+                `nexora_session=${sessionToken}; ` +
+                `HttpOnly; Secure; SameSite=Lax; Path=/; ` +
+                `Max-Age=2592000`
+            }
           }
-        });
+        );
 
       } catch (error) {
         return Response.json(
