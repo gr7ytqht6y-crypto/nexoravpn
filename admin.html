@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>NexoraVPN — Admin</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(229, 9, 20, 0.13),
+          transparent 35%
+        ),
+        #070707;
+
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    header {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 0 28px;
+
+      border-bottom: 1px solid #202020;
+      background: rgba(7, 7, 7, 0.88);
+
+      backdrop-filter: blur(15px);
+
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span {
+      color: #e50914;
+    }
+
+    .admin-badge {
+      padding: 7px 12px;
+      border-radius: 999px;
+
+      background: rgba(229, 9, 20, 0.12);
+      border: 1px solid rgba(229, 9, 20, 0.35);
+
+      color: #ff4d57;
+
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 45px 22px 60px;
+    }
+
+    .hero {
+      margin-bottom: 28px;
+    }
+
+    .hero h1 {
+      margin: 0;
+
+      font-size: clamp(30px, 6vw, 46px);
+      letter-spacing: -1.5px;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+
+      color: #888;
+      font-size: 15px;
+    }
+
+    /* =========================
+       СТАТИСТИКА
+       ========================= */
+
+    .stats {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+      gap: 16px;
+
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      padding: 22px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #111,
+          #0b0b0b
+        );
+
+      border: 1px solid #202020;
+
+      border-radius: 18px;
+
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .stat-label {
+      color: #777;
+
+      font-size: 13px;
+
+      margin-bottom: 9px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+
+      font-weight: 800;
+
+      letter-spacing: -0.5px;
+    }
+
+    /* =========================
+       СИСТЕМА
+       ========================= */
+
+    .system-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+      gap: 12px;
+
+      margin-bottom: 25px;
+    }
+
+    .system-card {
+      display: flex;
+
+      align-items: center;
+
+      gap: 11px;
+
+      padding: 15px 17px;
+
+      background: #0d0d0d;
+
+      border: 1px solid #202020;
+
+      border-radius: 14px;
+    }
+
+    .system-dot {
+      width: 9px;
+      height: 9px;
+
+      border-radius: 50%;
+
+      flex-shrink: 0;
+    }
+
+    .online {
+      background: #4ade80;
+
+      box-shadow:
+        0 0 10px rgba(74, 222, 128, 0.5);
+    }
+
+    .waiting {
+      background: #facc15;
+
+      box-shadow:
+        0 0 10px rgba(250, 204, 21, 0.35);
+    }
+
+    .system-name {
+      font-size: 13px;
+
+      font-weight: 600;
+    }
+
+    .system-status {
+      margin-left: auto;
+
+      color: #666;
+
+      font-size: 11px;
+    }
+
+    /* =========================
+       ПАНЕЛЬ
+       ========================= */
+
+    .panel {
+      background: #0c0c0c;
+
+      border: 1px solid #202020;
+
+      border-radius: 20px;
+
+      overflow: hidden;
+
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    .panel-header {
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      gap: 15px;
+
+      padding: 20px 24px;
+
+      border-bottom: 1px solid #202020;
+    }
+
+    .panel-title {
+      font-size: 18px;
+
+      font-weight: 700;
+    }
+
+    .panel-subtitle {
+      margin-top: 4px;
+
+      color: #666;
+
+      font-size: 12px;
+    }
+
+    .actions {
+      display: flex;
+
+      align-items: center;
+
+      gap: 9px;
+    }
+
+    /* =========================
+       ПОИСК
+       ========================= */
+
+    .search {
+      width: 230px;
+
+      padding: 10px 13px;
+
+      border-radius: 10px;
+
+      border: 1px solid #292929;
+
+      background: #151515;
+
+      color: #fff;
+
+      outline: none;
+
+      font-size: 13px;
+    }
+
+    .search:focus {
+      border-color: #444;
+    }
+
+    .search::placeholder {
+      color: #666;
+    }
+
+    .refresh {
+      border: 1px solid #292929;
+
+      background: #151515;
+
+      color: #fff;
+
+      padding: 10px 14px;
+
+      border-radius: 10px;
+
+      cursor: pointer;
+
+      font-size: 13px;
+    }
+
+    .refresh:hover {
+      border-color: #e50914;
+    }
+
+    /* =========================
+       ТАБЛИЦА
+       ========================= */
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+
+      border-collapse: collapse;
+
+      min-width: 760px;
+    }
+
+    th {
+      text-align: left;
+
+      padding: 15px 20px;
+
+      background: #101010;
+
+      color: #777;
+
+      font-size: 11px;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.7px;
+    }
+
+    td {
+      padding: 18px 20px;
+
+      border-top: 1px solid #191919;
+
+      color: #ddd;
+
+      font-size: 14px;
+    }
+
+    tbody tr {
+      transition: background 0.2s;
+    }
+
+    tbody tr:hover {
+      background: #111;
+    }
+
+    .user-id {
+      color: #666;
+
+      font-weight: 600;
+    }
+
+    .email {
+      color: #fff;
+
+      font-weight: 600;
+    }
+
+    /* =========================
+       СТАТУС ПОДПИСКИ
+       ========================= */
+
+    .status {
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 7px;
+
+      padding: 6px 10px;
+
+      border-radius: 999px;
+
+      font-size: 12px;
+
+      font-weight: 700;
+    }
+
+    .status::before {
+      content: "";
+
+      width: 6px;
+      height: 6px;
+
+      border-radius: 50%;
+
+      background: currentColor;
+    }
+
+    .status.active {
+      color: #4ade80;
+
+      background:
+        rgba(74, 222, 128, 0.1);
+    }
+
+    .status.inactive {
+      color: #888;
+
+      background:
+        rgba(255, 255, 255, 0.06);
+    }
+
+    .empty {
+      text-align: center;
+
+      padding: 45px;
+
+      color: #666;
+    }
+
+    .error {
+      color: #ff4d57;
+
+      text-align: center;
+
+      padding: 35px;
+    }
+
+    /* =========================
+       НИЗ
+       ========================= */
+
+    .bottom {
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      margin-top: 22px;
+    }
+
+    .back {
+      color: #888;
+
+      text-decoration: none;
+
+      font-size: 14px;
+    }
+
+    .back:hover {
+      color: #fff;
+    }
+
+    .secure {
+      color: #555;
+
+      font-size: 12px;
+    }
+
+    /* =========================
+       MOBILE
+       ========================= */
+
+    @media (max-width: 800px) {
+
+      header {
+        padding: 0 18px;
+      }
+
+      main {
+        padding: 32px 14px 45px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .system-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header {
+        align-items: stretch;
+
+        flex-direction: column;
+
+        padding: 18px;
+      }
+
+      .actions {
+        width: 100%;
+      }
+
+      .search {
+        flex: 1;
+
+        width: auto;
+      }
+
+      .hero h1 {
+        font-size: 34px;
+      }
+
+      .bottom {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 12px;
+      }
+    }
+
+    @media (max-width: 450px) {
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .search,
+      .refresh {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+
+  <div class="logo">
+    Nexora<span>VPN</span>
+  </div>
+
+  <div class="admin-badge">
+    ADMIN
+  </div>
+
+</header>
+
+
+<main>
+
+  <!-- HERO -->
+
+  <section class="hero">
+
+    <h1>
+      Админ-панель
+    </h1>
+
+    <p>
+      Управление и мониторинг NexoraVPN
+    </p>
+
+  </section>
+
+
+  <!-- СТАТИСТИКА -->
+
+  <section class="stats">
+
+    <div class="stat-card">
+
+      <div class="stat-label">
+        Всего пользователей
+      </div>
+
+      <div
+        class="stat-value"
+        id="totalUsers"
+      >
+        —
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-label">
+        Активные подписки
+      </div>
+
+      <div
+        class="stat-value"
+        id="activeUsers"
+      >
+        —
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-label">
+        Регистрации сегодня
+      </div>
+
+      <div
+        class="stat-value"
+        id="todayUsers"
+      >
+        —
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- СИСТЕМА -->
+
+  <section class="system-grid">
+
+    <div class="system-card">
+
+      <div class="system-dot online"></div>
+
+      <div class="system-name">
+        API
+      </div>
+
+      <div class="system-status">
+        Online
+      </div>
+
+    </div>
+
+
+    <div class="system-card">
+
+      <div class="system-dot online"></div>
+
+      <div class="system-name">
+        Database
+      </div>
+
+      <div class="system-status">
+        Online
+      </div>
+
+    </div>
+
+
+    <div class="system-card">
+
+      <div class="system-dot waiting"></div>
+
+      <div class="system-name">
+        VPN Server
+      </div>
+
+      <div class="system-status">
+        Waiting
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ПОЛЬЗОВАТЕЛИ -->
+
+  <section class="panel">
+
+    <div class="panel-header">
+
+      <div>
+
+        <div class="panel-title">
+          Пользователи
+        </div>
+
+        <div
+          class="panel-subtitle"
+          id="userCount"
+        >
+          Загрузка...
+        </div>
+
+      </div>
+
+
+      <div class="actions">
+
+        <input
+          id="search"
+          class="search"
+          type="search"
+          placeholder="Поиск по email..."
+        >
+
+        <button
+          class="refresh"
+          onclick="loadUsers()"
+        >
+          ↻ Обновить
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              ID
+            </th>
+
+            <th>
+              Email
+            </th>
+
+            <th>
+              Регистрация
+            </th>
+
+            <th>
+              Статус
+            </th>
+
+            <th>
+              Тариф
+            </th>
+
+            <th>
+              Истекает
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody id="users">
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+  <div class="bottom">
+
+    <a
+      class="back"
+      href="account.html"
+    >
+      ← Вернуться в кабинет
+    </a>
+
+    <div class="secure">
+      NexoraVPN • Secure Admin
+    </div>
+
+  </div>
+
+</main>
+
+
+<script>
+
+  let allUsers = [];
+
+
+  // =========================
+  // ЗАГРУЗКА ПОЛЬЗОВАТЕЛЕЙ
+  // =========================
+
+  async function loadUsers() {
+
+    const tbody =
+      document.getElementById("users");
+
+    tbody.innerHTML =
+      `
+      <tr>
+        <td
+          colspan="6"
+          class="empty"
+        >
+          Загрузка...
+        </td>
+      </tr>
+      `;
+
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/admin/users",
+          {
+            method: "GET",
+            credentials: "same-origin"
+          }
+        );
+
+
+      const result =
+        await response.json();
+
+
+      if (!result.success) {
+
+        if (response.status === 403) {
+
+          window.location.href =
+            "account.html";
+
+          return;
+
+        }
+
+        throw new Error();
+
+      }
+
+
+      allUsers =
+        result.users || [];
+
+
+      updateStats(allUsers);
+
+      renderUsers(allUsers);
+
+
+    } catch (error) {
+
+      document.getElementById(
+        "users"
+      ).innerHTML =
+        `
+        <tr>
+          <td
+            colspan="6"
+            class="error"
+          >
+            Не удалось загрузить пользователей
+          </td>
+        </tr>
+        `;
+
+      document.getElementById(
+        "userCount"
+      ).textContent =
+        "Ошибка загрузки";
+
+    }
+
+  }
+
+
+  // =========================
+  // СТАТИСТИКА
+  // =========================
+
+  function updateStats(users) {
+
+    const total =
+      users.length;
+
+
+    const active =
+      users.filter(
+        user =>
+          user.subscription_status === "active"
+      ).length;
+
+
+    const today =
+      users.filter(user => {
+
+        if (!user.created_at) {
+          return false;
+        }
+
+        const date =
+          new Date(user.created_at);
+
+        const now =
+          new Date();
+
+        return (
+          date.getFullYear() ===
+            now.getFullYear() &&
+
+          date.getMonth() ===
+            now.getMonth() &&
+
+          date.getDate() ===
+            now.getDate()
+        );
+
+      }).length;
+
+
+    document.getElementById(
+      "totalUsers"
+    ).textContent =
+      total;
+
+
+    document.getElementById(
+      "activeUsers"
+    ).textContent =
+      active;
+
+
+    document.getElementById(
+      "todayUsers"
+    ).textContent =
+      today;
+
+
+    document.getElementById(
+      "userCount"
+    ).textContent =
+      `${total} пользователей`;
+
+  }
+
+
+  // =========================
+  // ОТОБРАЖЕНИЕ
+  // =========================
+
+  function renderUsers(users) {
+
+    const tbody =
+      document.getElementById("users");
+
+
+    if (users.length === 0) {
+
+      tbody.innerHTML =
+        `
+        <tr>
+          <td
+            colspan="6"
+            class="empty"
+          >
+            Пользователи не найдены
+          </td>
+        </tr>
+        `;
+
+      return;
+
+    }
+
+
+    tbody.innerHTML =
+      users.map(user => {
+
+        const active =
+          user.subscription_status ===
+          "active";
+
+
+        return `
+          <tr>
+
+            <td class="user-id">
+              #${user.id}
+            </td>
+
+            <td class="email">
+              ${escapeHtml(user.email)}
+            </td>
+
+            <td>
+              ${escapeHtml(user.created_at)}
+            </td>
+
+            <td>
+
+              <span
+                class="status ${
+                  active
+                    ? "active"
+                    : "inactive"
+                }"
+              >
+
+                ${
+                  active
+                    ? "Активна"
+                    : "Не активна"
+                }
+
+              </span>
+
+            </td>
+
+            <td>
+              ${
+                user.subscription_plan
+                  ? escapeHtml(
+                      user.subscription_plan
+                    )
+                  : "—"
+              }
+            </td>
+
+            <td>
+              ${
+                user.subscription_expires_at
+                  ? escapeHtml(
+                      user.subscription_expires_at
+                    )
+                  : "—"
+              }
+            </td>
+
+          </tr>
+        `;
+
+      }).join("");
+
+  }
+
+
+  // =========================
+  // ПОИСК
+  // =========================
+
+  document
+    .getElementById("search")
+    .addEventListener(
+      "input",
+      function () {
+
+        const query =
+          this.value
+            .trim()
+            .toLowerCase();
+
+
+        if (!query) {
+
+          renderUsers(allUsers);
+
+          return;
+
+        }
+
+
+        const filtered =
+          allUsers.filter(user =>
+            String(user.email)
+              .toLowerCase()
+              .includes(query)
+          );
+
+
+        renderUsers(filtered);
+
+      }
+    );
+
+
+  // =========================
+  // ЗАЩИТА HTML
+  // =========================
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+
+  }
+
+
+  // =========================
+  // ЗАПУСК
+  // =========================
+
+  loadUsers();
+
+
+  // Автообновление каждые 60 секунд
+
+  setInterval(
+    loadUsers,
+    60000
+  );
+
+</script>
+
+</body>
+</html>
