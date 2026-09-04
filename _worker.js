@@ -18,6 +18,46 @@ function generateToken() {
   return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+  async function getAdminUser(request, env) {
+  const cookieHeader =
+    request.headers.get("Cookie") || "";
+
+  const match =
+    cookieHeader.match(
+      /(?:^|;\s*)nexora_session=([^;]+)/
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const sessionToken = match[1];
+
+  const tokenHash =
+    await hashToken(sessionToken);
+
+  const admin = await env.DB
+    .prepare(
+      `SELECT
+         users.id,
+         users.email
+       FROM sessions
+       INNER JOIN admins
+         ON admins.user_id = sessions.user_id
+       INNER JOIN users
+         ON users.id = sessions.user_id
+       WHERE sessions.token_hash = ?
+         AND sessions.expires_at > ?
+       LIMIT 1`
+    )
+    .bind(
+      tokenHash,
+      new Date().toISOString()
+    )
+    .first();
+
+  return admin || null;
+}
 }export default {
   async fetch(request, env) {
     const url = new URL(request.url);
