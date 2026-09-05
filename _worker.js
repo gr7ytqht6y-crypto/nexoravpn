@@ -131,6 +131,122 @@ function generateToken() {
     );
   }
 }
+    if (url.pathname === "/api/reset-password" && request.method === "POST") {
+  try {
+    const body = await request.json();
+
+    const token = String(body.token || "").trim();
+    const password = String(body.password || "");
+
+    if (!token || !password) {
+      return Response.json(
+        {
+          success: false,
+          error: "Недостаточно данных"
+        },
+        { status: 400 }
+      );
+    }
+
+    if (password.length < 8) {
+      return Response.json(
+        {
+          success: false,
+          error: "Пароль должен содержать минимум 8 символов"
+        },
+        { status: 400 }
+      );
+    }
+
+    const tokenHash = await hashToken(token);
+
+    const reset = await env.DB
+      .prepare(
+        `SELECT
+           id,
+           user_id,
+           expires_at,
+           used
+         FROM password_resets
+         WHERE token_hash = ?
+         LIMIT 1`
+      )
+      .bind(tokenHash)
+      .first();
+
+    if (!reset) {
+      return Response.json(
+        {
+          success: false,
+          error: "Недействительная ссылка восстановления"
+        },
+        { status: 400 }
+      );
+    }
+
+    if (reset.used === 1) {
+      return Response.json(
+        {
+          success: false,
+          error: "Эта ссылка уже использована"
+        },
+        { status: 400 }
+      );
+    }
+
+    if (new Date(reset.expires_at).getTime() <= Date.now()) {
+      return Response.json(
+        {
+          success: false,
+          error: "Срок действия ссылки истёк"
+        },
+        { status: 400 }
+      );
+    }
+
+    const passwordHash = await hashToken(password);
+
+    await env.DB
+      .prepare(
+        `UPDATE users
+         SET password_hash = ?
+         WHERE id = ?`
+      )
+      .bind(passwordHash, reset.user_id)
+      .run();
+
+    await env.DB
+      .prepare(
+        `UPDATE password_resets
+         SET used = 1
+         WHERE id = ?`
+      )
+      .bind(reset.id)
+      .run();
+
+    await env.DB
+      .prepare(
+        `DELETE FROM sessions
+         WHERE user_id = ?`
+      )
+      .bind(reset.user_id)
+      .run();
+
+    return Response.json({
+      success: true,
+      message: "Пароль успешно изменён"
+    });
+
+  } catch (error) {
+    return Response.json(
+      {
+        success: false,
+        error: "Ошибка сервера"
+      },
+      { status: 500 }
+    );
+  }
+}
         // =========================
     // АДМИН: СПИСОК ПОЛЬЗОВАТЕЛЕЙ
     // =========================
