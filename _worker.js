@@ -40,8 +40,8 @@ function getCookie(request, name) {
   const match = cookieHeader.match(
     new RegExp(
       "(?:^|;\\s*)" +
-      name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
-      "=([^;]+)"
+        name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
+        "=([^;]+)"
     )
   );
 
@@ -131,15 +131,15 @@ export default {
         }
 
         const token = generateToken();
-        const tokenHash = await hashToken(token);
+        const tokenHash =
+          await hashToken(token);
 
         const expiresAt =
           new Date(
             Date.now() + 15 * 60 * 1000
           ).toISOString();
 
-        // Все старые ссылки пользователя
-        // становятся недействительными.
+        // Делаем старые ссылки недействительными.
         await env.DB
           .prepare(
             `UPDATE password_resets
@@ -245,15 +245,15 @@ export default {
         }
 
         const token = generateToken();
-        const tokenHash = await hashToken(token);
+        const tokenHash =
+          await hashToken(token);
 
         const expiresAt =
           new Date(
             Date.now() + 15 * 60 * 1000
           ).toISOString();
 
-        // Делаем все предыдущие ссылки
-        // пользователя недействительными.
+        // Делаем предыдущие ссылки недействительными.
         await env.DB
           .prepare(
             `UPDATE password_resets
@@ -277,8 +277,6 @@ export default {
           )
           .run();
 
-        // Токен состоит только из hex-символов,
-        // но encodeURIComponent оставляем для надёжности.
         const resetUrl =
           `${url.origin}/reset-password.html?token=` +
           encodeURIComponent(token);
@@ -320,14 +318,6 @@ export default {
           body = {};
         }
 
-        /*
-         * Основной источник — POST body.
-         * Дополнительный источник — ?token=...
-         *
-         * Это делает endpoint устойчивым,
-         * даже если токен потерялся при передаче
-         * через frontend.
-         */
         const bodyToken =
           typeof body.token === "string"
             ? body.token.trim()
@@ -354,10 +344,7 @@ export default {
           );
         }
 
-        /*
-         * generateToken() создаёт ровно
-         * 64 hex-символа.
-         */
+        // Токен должен состоять из 64 hex-символов.
         if (
           !/^[a-f0-9]{64}$/i.test(token)
         ) {
@@ -396,63 +383,57 @@ export default {
         const tokenHash =
           await hashToken(token);
 
-       const reset = await env.DB
-  .prepare(
-    `SELECT
-       id,
-       user_id,
-       token_hash,
-       expires_at,
-       used
-     FROM password_resets
-     WHERE token_hash = ?
-     LIMIT 1`
-  )
-  .bind(tokenHash)
-  .first();
+        const reset = await env.DB
+          .prepare(
+            `SELECT
+               id,
+               user_id,
+               token_hash,
+               expires_at,
+               used
+             FROM password_resets
+             WHERE token_hash = ?
+             LIMIT 1`
+          )
+          .bind(tokenHash)
+          .first();
 
-if (!reset) {
-  const latestReset = await env.DB
-    .prepare(
-      `SELECT
-         id,
-         user_id,
-         length(token_hash) AS hash_length,
-         typeof(token_hash) AS hash_type,
-         expires_at,
-         used
-       FROM password_resets
-       ORDER BY id DESC
-       LIMIT 1`
-    )
-    .first();
-
-  console.error(
-    "RESET TOKEN MISMATCH:",
-    JSON.stringify({
-      received_token_length: token.length,
-      received_hash_length: tokenHash.length,
-      latest_reset_id: latestReset?.id || null,
-      latest_reset_user_id: latestReset?.user_id || null,
-      latest_hash_length: latestReset?.hash_length || null,
-      latest_hash_type: latestReset?.hash_type || null,
-      latest_used: latestReset?.used ?? null
-    })
-  );
-
-  return json(
-    {
-      success: false,
-      error:
-        "Недействительная ссылка восстановления"
-    },
-    400
-  );
-} 
-
+        // Диагностика несовпадения токена.
+        // Сам токен и его hash НЕ выводятся.
         if (!reset) {
+          const latestReset = await env.DB
+            .prepare(
+              `SELECT
+                 id,
+                 user_id,
+                 length(token_hash) AS hash_length,
+                 typeof(token_hash) AS hash_type,
+                 expires_at,
+                 used
+               FROM password_resets
+               ORDER BY id DESC
+               LIMIT 1`
+            )
+            .first();
+
           console.error(
-            "RESET PASSWORD: token not found"
+            "RESET TOKEN MISMATCH:",
+            JSON.stringify({
+              received_token_length:
+                token.length,
+              received_hash_length:
+                tokenHash.length,
+              latest_reset_id:
+                latestReset?.id ?? null,
+              latest_reset_user_id:
+                latestReset?.user_id ?? null,
+              latest_hash_length:
+                latestReset?.hash_length ?? null,
+              latest_hash_type:
+                latestReset?.hash_type ?? null,
+              latest_used:
+                latestReset?.used ?? null
+            })
           );
 
           return json(
@@ -465,10 +446,8 @@ if (!reset) {
           );
         }
 
-        /*
-         * D1/SQLite может вернуть значение used
-         * как число или строку.
-         */
+        // D1/SQLite может вернуть used
+        // как число или строку.
         const resetUsed =
           Number(reset.used) === 1;
 
@@ -495,7 +474,9 @@ if (!reset) {
         }
 
         const expiresAt =
-          new Date(reset.expires_at).getTime();
+          new Date(
+            reset.expires_at
+          ).getTime();
 
         if (
           !Number.isFinite(expiresAt) ||
@@ -511,9 +492,7 @@ if (!reset) {
           );
         }
 
-        /*
-         * Проверяем, что пользователь всё ещё существует.
-         */
+        // Проверяем существование пользователя.
         const user = await env.DB
           .prepare(
             `SELECT id
@@ -535,11 +514,7 @@ if (!reset) {
           );
         }
 
-        /*
-         * В проекте уже используется SHA-256
-         * для паролей, поэтому сохраняем совместимость
-         * с существующими аккаунтами.
-         */
+        // Совместимо с текущей системой паролей.
         const passwordHash =
           await hashToken(password);
 
@@ -555,27 +530,18 @@ if (!reset) {
           )
           .run();
 
-        /*
-         * Помечаем именно эту ссылку использованной.
-         *
-         * В условии снова проверяем used = 0,
-         * чтобы одну ссылку нельзя было применить
-         * повторно при одновременных запросах.
-         */
-        const markUsed =
-          await env.DB
-            .prepare(
-              `UPDATE password_resets
-               SET used = 1
-               WHERE id = ?
-                 AND used = 0`
-            )
-            .bind(reset.id)
-            .run();
+        // Помечаем именно эту ссылку использованной.
+        await env.DB
+          .prepare(
+            `UPDATE password_resets
+             SET used = 1
+             WHERE id = ?
+               AND used = 0`
+          )
+          .bind(reset.id)
+          .run();
 
-        /*
-         * Закрываем все старые сессии пользователя.
-         */
+        // Удаляем все активные сессии пользователя.
         await env.DB
           .prepare(
             `DELETE FROM sessions
@@ -586,7 +552,7 @@ if (!reset) {
 
         console.log(
           "RESET PASSWORD SUCCESS: user_id=" +
-          String(reset.user_id)
+            String(reset.user_id)
         );
 
         return json({
@@ -982,7 +948,7 @@ if (!reset) {
         const expiresAt =
           new Date(
             Date.now() +
-            30 * 24 * 60 * 60 * 1000
+              30 * 24 * 60 * 60 * 1000
           ).toISOString();
 
         await env.DB
@@ -1008,8 +974,8 @@ if (!reset) {
           {
             "Set-Cookie":
               `nexora_session=${sessionToken}; ` +
-              `HttpOnly; Secure; SameSite=Lax; ` +
-              `Path=/; Max-Age=2592000`
+              "HttpOnly; Secure; SameSite=Lax; " +
+              "Path=/; Max-Age=2592000"
           }
         );
 
