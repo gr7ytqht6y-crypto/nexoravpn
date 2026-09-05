@@ -61,6 +61,76 @@ function generateToken() {
 }export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/forgot-password" && request.method === "POST") {
+  try {
+    const body = await request.json();
+    const email = String(body.email || "").trim().toLowerCase();
+
+    if (!email) {
+      return Response.json(
+        { success: false, error: "Email обязателен" },
+        { status: 400 }
+      );
+    }
+
+    const user = await env.DB
+      .prepare(
+        `SELECT id, email
+         FROM users
+         WHERE email = ?
+         LIMIT 1`
+      )
+      .bind(email)
+      .first();
+
+    // Не раскрываем, существует ли такой аккаунт.
+    if (!user) {
+      return Response.json({
+        success: true,
+        message: "Если аккаунт существует, инструкции будут отправлены на email."
+      });
+    }
+
+    const token = generateToken();
+    const tokenHash = await hashToken(token);
+
+    const expiresAt = new Date(
+      Date.now() + 15 * 60 * 1000
+    ).toISOString();
+
+    await env.DB
+      .prepare(
+        `UPDATE password_resets
+         SET used = 1
+         WHERE user_id = ? AND used = 0`
+      )
+      .bind(user.id)
+      .run();
+
+    await env.DB
+      .prepare(
+        `INSERT INTO password_resets
+         (user_id, token_hash, expires_at)
+         VALUES (?, ?, ?)`
+      )
+      .bind(user.id, tokenHash, expiresAt)
+      .run();
+
+    return Response.json({
+      success: true,
+      message: "Если аккаунт существует, инструкции будут отправлены на email."
+    });
+
+  } catch (error) {
+    return Response.json(
+      {
+        success: false,
+        error: "Ошибка сервера"
+      },
+      { status: 500 }
+    );
+  }
+}
         // =========================
     // АДМИН: СПИСОК ПОЛЬЗОВАТЕЛЕЙ
     // =========================
