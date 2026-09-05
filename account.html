@@ -293,23 +293,85 @@
 
   }
 
+
   document
     .getElementById("logout")
     .addEventListener("click", async () => {
 
       try {
+
         await fetch("/api/logout", {
           method: "POST",
           credentials: "same-origin"
         });
+
       } catch (error) {
+
         // Даже если запрос завершился ошибкой,
         // возвращаем пользователя на страницу входа.
+
       }
 
       window.location.href = "login.html";
 
     });
+
+
+  async function testResetLink() {
+
+    const email =
+      document.getElementById("email").textContent.trim();
+
+    if (!email || email === "—") {
+
+      alert("Email ещё не загружен.");
+      return;
+
+    }
+
+    try {
+
+      const response =
+        await fetch("/api/test-reset-link", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            email: email
+          })
+        });
+
+      const result =
+        await response.json();
+
+      if (!response.ok || !result.success) {
+
+        alert(
+          result.error ||
+          "Не удалось создать тестовую ссылку."
+        );
+
+        return;
+
+      }
+
+      prompt(
+        "Тестовая ссылка восстановления пароля:",
+        result.reset_url
+      );
+
+    } catch (error) {
+
+      alert(
+        "Ошибка при создании тестовой ссылки."
+      );
+
+    }
+
+  }
+
 
   loadAccount();
 
