@@ -396,20 +396,59 @@ export default {
         const tokenHash =
           await hashToken(token);
 
-        const reset = await env.DB
-          .prepare(
-            `SELECT
-               id,
-               user_id,
-               token_hash,
-               expires_at,
-               used
-             FROM password_resets
-             WHERE token_hash = ?
-             LIMIT 1`
-          )
-          .bind(tokenHash)
-          .first();
+       const reset = await env.DB
+  .prepare(
+    `SELECT
+       id,
+       user_id,
+       token_hash,
+       expires_at,
+       used
+     FROM password_resets
+     WHERE token_hash = ?
+     LIMIT 1`
+  )
+  .bind(tokenHash)
+  .first();
+
+if (!reset) {
+  const latestReset = await env.DB
+    .prepare(
+      `SELECT
+         id,
+         user_id,
+         length(token_hash) AS hash_length,
+         typeof(token_hash) AS hash_type,
+         expires_at,
+         used
+       FROM password_resets
+       ORDER BY id DESC
+       LIMIT 1`
+    )
+    .first();
+
+  console.error(
+    "RESET TOKEN MISMATCH:",
+    JSON.stringify({
+      received_token_length: token.length,
+      received_hash_length: tokenHash.length,
+      latest_reset_id: latestReset?.id || null,
+      latest_reset_user_id: latestReset?.user_id || null,
+      latest_hash_length: latestReset?.hash_length || null,
+      latest_hash_type: latestReset?.hash_type || null,
+      latest_used: latestReset?.used ?? null
+    })
+  );
+
+  return json(
+    {
+      success: false,
+      error:
+        "Недействительная ссылка восстановления"
+    },
+    400
+  );
+} 
 
         if (!reset) {
           console.error(
