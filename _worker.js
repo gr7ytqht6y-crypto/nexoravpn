@@ -20,20 +20,41 @@ function generateToken() {
     .join("");
 }
 
-async function getAdminUser(request, env) {
+function json(data, status = 200, extraHeaders = {}) {
+  return new Response(
+    JSON.stringify(data),
+    {
+      status,
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+        ...extraHeaders
+      }
+    }
+  );
+}
+
+function getCookie(request, name) {
   const cookieHeader =
     request.headers.get("Cookie") || "";
 
-  const match =
-    cookieHeader.match(
-      /(?:^|;\s*)nexora_session=([^;]+)/
-    );
+  const match = cookieHeader.match(
+    new RegExp(
+      "(?:^|;\\s*)" +
+      name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
+      "=([^;]+)"
+    )
+  );
 
-  if (!match) {
+  return match ? match[1] : null;
+}
+
+async function getAdminUser(request, env) {
+  const sessionToken =
+    getCookie(request, "nexora_session");
+
+  if (!sessionToken) {
     return null;
   }
-
-  const sessionToken = match[1];
 
   const tokenHash =
     await hashToken(sessionToken);
@@ -81,12 +102,12 @@ export default {
             .toLowerCase();
 
         if (!email) {
-          return Response.json(
+          return json(
             {
               success: false,
               error: "Email обязателен"
             },
-            { status: 400 }
+            400
           );
         }
 
@@ -100,9 +121,9 @@ export default {
           .bind(email)
           .first();
 
-        // Не раскрываем, существует ли аккаунт.
+        // Не раскрываем существование аккаунта.
         if (!user) {
-          return Response.json({
+          return json({
             success: true,
             message:
               "Если аккаунт существует, инструкции будут отправлены на email."
@@ -110,19 +131,21 @@ export default {
         }
 
         const token = generateToken();
+        const tokenHash = await hashToken(token);
 
-        const tokenHash =
-          await hashToken(token);
+        const expiresAt =
+          new Date(
+            Date.now() + 15 * 60 * 1000
+          ).toISOString();
 
-        const expiresAt = new Date(
-          Date.now() + 15 * 60 * 1000
-        ).toISOString();
-
+        // Все старые ссылки пользователя
+        // становятся недействительными.
         await env.DB
           .prepare(
             `UPDATE password_resets
              SET used = 1
-             WHERE user_id = ? AND used = 0`
+             WHERE user_id = ?
+               AND used = 0`
           )
           .bind(user.id)
           .run();
@@ -140,25 +163,30 @@ export default {
           )
           .run();
 
-        return Response.json({
+        return json({
           success: true,
           message:
             "Если аккаунт существует, инструкции будут отправлены на email."
         });
 
       } catch (error) {
-        return Response.json(
+        console.error(
+          "FORGOT PASSWORD ERROR:",
+          error
+        );
+
+        return json(
           {
             success: false,
             error: "Ошибка сервера"
           },
-          { status: 500 }
+          500
         );
       }
     }
 
     // =========================
-    // ВРЕМЕННЫЙ ТЕСТ RESET LINK
+    // ТЕСТОВАЯ ССЫЛКА RESET
     // ТОЛЬКО ДЛЯ АДМИНИСТРАТОРА
     // =========================
     if (
@@ -170,12 +198,12 @@ export default {
           await getAdminUser(request, env);
 
         if (!admin) {
-          return Response.json(
+          return json(
             {
               success: false,
               error: "Доступ запрещён"
             },
-            { status: 403 }
+            403
           );
         }
 
@@ -187,12 +215,12 @@ export default {
             .toLowerCase();
 
         if (!email) {
-          return Response.json(
+          return json(
             {
               success: false,
               error: "Email обязателен"
             },
-            { status: 400 }
+            400
           );
         }
 
@@ -207,29 +235,31 @@ export default {
           .first();
 
         if (!user) {
-          return Response.json(
+          return json(
             {
               success: false,
               error: "Пользователь не найден"
             },
-            { status: 404 }
+            404
           );
         }
 
         const token = generateToken();
+        const tokenHash = await hashToken(token);
 
-        const tokenHash =
-          await hashToken(token);
+        const expiresAt =
+          new Date(
+            Date.now() + 15 * 60 * 1000
+          ).toISOString();
 
-        const expiresAt = new Date(
-          Date.now() + 15 * 60 * 1000
-        ).toISOString();
-
+        // Делаем все предыдущие ссылки
+        // пользователя недействительными.
         await env.DB
           .prepare(
             `UPDATE password_resets
              SET used = 1
-             WHERE user_id = ? AND used = 0`
+             WHERE user_id = ?
+               AND used = 0`
           )
           .bind(user.id)
           .run();
@@ -247,19 +277,29 @@ export default {
           )
           .run();
 
-        return Response.json({
+        // Токен состоит только из hex-символов,
+        // но encodeURIComponent оставляем для надёжности.
+        const resetUrl =
+          `${url.origin}/reset-password.html?token=` +
+          encodeURIComponent(token);
+
+        return json({
           success: true,
-          reset_url:
-            `${url.origin}/reset-password.html?token=${token}`
+          reset_url: resetUrl
         });
 
       } catch (error) {
-        return Response.json(
+        console.error(
+          "TEST RESET LINK ERROR:",
+          error
+        );
+
+        return json(
           {
             success: false,
             error: "Ошибка сервера"
           },
-          { status: 500 }
+          500
         );
       }
     }
@@ -272,32 +312,84 @@ export default {
       request.method === "POST"
     ) {
       try {
-        const body = await request.json();
+        let body = {};
+
+        try {
+          body = await request.json();
+        } catch {
+          body = {};
+        }
+
+        /*
+         * Основной источник — POST body.
+         * Дополнительный источник — ?token=...
+         *
+         * Это делает endpoint устойчивым,
+         * даже если токен потерялся при передаче
+         * через frontend.
+         */
+        const bodyToken =
+          typeof body.token === "string"
+            ? body.token.trim()
+            : "";
+
+        const urlToken =
+          url.searchParams.get("token") || "";
 
         const token =
-          String(body.token || "").trim();
+          bodyToken || urlToken.trim();
 
         const password =
-          String(body.password || "");
+          typeof body.password === "string"
+            ? body.password
+            : "";
 
         if (!token || !password) {
-          return Response.json(
+          return json(
             {
               success: false,
               error: "Недостаточно данных"
             },
-            { status: 400 }
+            400
+          );
+        }
+
+        /*
+         * generateToken() создаёт ровно
+         * 64 hex-символа.
+         */
+        if (
+          !/^[a-f0-9]{64}$/i.test(token)
+        ) {
+          return json(
+            {
+              success: false,
+              error:
+                "Недействительная ссылка восстановления"
+            },
+            400
           );
         }
 
         if (password.length < 8) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Пароль должен содержать минимум 8 символов"
             },
-            { status: 400 }
+            400
+          );
+        }
+
+        if (password.length > 128) {
+          return json(
+            {
+              success: false,
+              error:
+                "Пароль не должен содержать более 128 символов"
+            },
+            400
           );
         }
 
@@ -309,6 +401,7 @@ export default {
             `SELECT
                id,
                user_id,
+               token_hash,
                expires_at,
                used
              FROM password_resets
@@ -319,41 +412,95 @@ export default {
           .first();
 
         if (!reset) {
-          return Response.json(
+          console.error(
+            "RESET PASSWORD: token not found"
+          );
+
+          return json(
             {
               success: false,
               error:
                 "Недействительная ссылка восстановления"
             },
-            { status: 400 }
+            400
           );
         }
 
-        if (reset.used === 1) {
-          return Response.json(
+        /*
+         * D1/SQLite может вернуть значение used
+         * как число или строку.
+         */
+        const resetUsed =
+          Number(reset.used) === 1;
+
+        if (resetUsed) {
+          return json(
             {
               success: false,
               error:
                 "Эта ссылка уже использована"
             },
-            { status: 400 }
+            400
           );
         }
 
+        if (!reset.expires_at) {
+          return json(
+            {
+              success: false,
+              error:
+                "Недействительная ссылка восстановления"
+            },
+            400
+          );
+        }
+
+        const expiresAt =
+          new Date(reset.expires_at).getTime();
+
         if (
-          new Date(reset.expires_at).getTime() <=
-          Date.now()
+          !Number.isFinite(expiresAt) ||
+          expiresAt <= Date.now()
         ) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Срок действия ссылки истёк"
             },
-            { status: 400 }
+            400
           );
         }
 
+        /*
+         * Проверяем, что пользователь всё ещё существует.
+         */
+        const user = await env.DB
+          .prepare(
+            `SELECT id
+             FROM users
+             WHERE id = ?
+             LIMIT 1`
+          )
+          .bind(reset.user_id)
+          .first();
+
+        if (!user) {
+          return json(
+            {
+              success: false,
+              error:
+                "Пользователь не найден"
+            },
+            404
+          );
+        }
+
+        /*
+         * В проекте уже используется SHA-256
+         * для паролей, поэтому сохраняем совместимость
+         * с существующими аккаунтами.
+         */
         const passwordHash =
           await hashToken(password);
 
@@ -369,16 +516,27 @@ export default {
           )
           .run();
 
-        await env.DB
-          .prepare(
-            `UPDATE password_resets
-             SET used = 1
-             WHERE id = ?`
-          )
-          .bind(reset.id)
-          .run();
+        /*
+         * Помечаем именно эту ссылку использованной.
+         *
+         * В условии снова проверяем used = 0,
+         * чтобы одну ссылку нельзя было применить
+         * повторно при одновременных запросах.
+         */
+        const markUsed =
+          await env.DB
+            .prepare(
+              `UPDATE password_resets
+               SET used = 1
+               WHERE id = ?
+                 AND used = 0`
+            )
+            .bind(reset.id)
+            .run();
 
-        // После смены пароля закрываем все старые сессии.
+        /*
+         * Закрываем все старые сессии пользователя.
+         */
         await env.DB
           .prepare(
             `DELETE FROM sessions
@@ -387,19 +545,29 @@ export default {
           .bind(reset.user_id)
           .run();
 
-        return Response.json({
+        console.log(
+          "RESET PASSWORD SUCCESS: user_id=" +
+          String(reset.user_id)
+        );
+
+        return json({
           success: true,
           message:
             "Пароль успешно изменён"
         });
 
       } catch (error) {
-        return Response.json(
+        console.error(
+          "RESET PASSWORD ERROR:",
+          error
+        );
+
+        return json(
           {
             success: false,
             error: "Ошибка сервера"
           },
-          { status: 500 }
+          500
         );
       }
     }
@@ -407,15 +575,16 @@ export default {
     // =========================
     // АДМИН: СПИСОК ПОЛЬЗОВАТЕЛЕЙ
     // =========================
-    if (url.pathname === "/api/admin/users") {
-
+    if (
+      url.pathname === "/api/admin/users"
+    ) {
       if (request.method !== "GET") {
-        return Response.json(
+        return json(
           {
             success: false,
             error: "Method not allowed"
           },
-          { status: 405 }
+          405
         );
       }
 
@@ -424,12 +593,12 @@ export default {
           await getAdminUser(request, env);
 
         if (!admin) {
-          return Response.json(
+          return json(
             {
               success: false,
               error: "Доступ запрещён"
             },
-            { status: 403 }
+            403
           );
         }
 
@@ -447,105 +616,91 @@ export default {
           )
           .all();
 
-        return Response.json({
+        return json({
           success: true,
           users: users.results || []
         });
 
       } catch (error) {
-        return Response.json(
+        console.error(
+          "ADMIN USERS ERROR:",
+          error
+        );
+
+        return json(
           {
             success: false,
             error:
               "Не удалось получить пользователей"
           },
-          { status: 500 }
+          500
         );
       }
     }
 
     // =========================
-    // ВЫХОД ИЗ АККАУНТА
+    // ВЫХОД
     // =========================
-    if (url.pathname === "/api/logout") {
-
+    if (
+      url.pathname === "/api/logout"
+    ) {
       if (request.method !== "POST") {
-        return Response.json(
+        return json(
           {
             success: false,
             error: "Method not allowed"
           },
-          { status: 405 }
+          405
         );
       }
 
       try {
-        const cookieHeader =
-          request.headers.get("Cookie") || "";
-
-        const match =
-          cookieHeader.match(
-            /(?:^|;\s*)nexora_session=([^;]+)/
+        const sessionToken =
+          getCookie(
+            request,
+            "nexora_session"
           );
 
-        if (!match) {
-          return new Response(
-            JSON.stringify({
-              success: true,
-              message:
-                "Вы вышли из аккаунта"
-            }),
-            {
-              status: 200,
-              headers: {
-                "Content-Type":
-                  "application/json",
-                "Set-Cookie":
-                  "nexora_session=; HttpOnly; Secure; " +
-                  "SameSite=Lax; Path=/; Max-Age=0"
-              }
-            }
-          );
+        if (sessionToken) {
+          const tokenHash =
+            await hashToken(sessionToken);
+
+          await env.DB
+            .prepare(
+              "DELETE FROM sessions WHERE token_hash = ?"
+            )
+            .bind(tokenHash)
+            .run();
         }
 
-        const sessionToken = match[1];
-
-        const tokenHash =
-          await hashToken(sessionToken);
-
-        await env.DB
-          .prepare(
-            "DELETE FROM sessions WHERE token_hash = ?"
-          )
-          .bind(tokenHash)
-          .run();
-
-        return new Response(
-          JSON.stringify({
+        return json(
+          {
             success: true,
             message:
               "Вы вышли из аккаунта"
-          }),
+          },
+          200,
           {
-            status: 200,
-            headers: {
-              "Content-Type":
-                "application/json",
-              "Set-Cookie":
-                "nexora_session=; HttpOnly; Secure; " +
-                "SameSite=Lax; Path=/; Max-Age=0"
-            }
+            "Set-Cookie":
+              "nexora_session=; " +
+              "HttpOnly; Secure; SameSite=Lax; " +
+              "Path=/; Max-Age=0"
           }
         );
 
       } catch (error) {
-        return Response.json(
+        console.error(
+          "LOGOUT ERROR:",
+          error
+        );
+
+        return json(
           {
             success: false,
             error:
               "Не удалось выполнить выход"
           },
-          { status: 500 }
+          500
         );
       }
     }
@@ -553,38 +708,35 @@ export default {
     // =========================
     // ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ
     // =========================
-    if (url.pathname === "/api/me") {
-
+    if (
+      url.pathname === "/api/me"
+    ) {
       if (request.method !== "GET") {
-        return Response.json(
+        return json(
           {
             success: false,
             error: "Method not allowed"
           },
-          { status: 405 }
+          405
         );
       }
 
       try {
-        const cookieHeader =
-          request.headers.get("Cookie") || "";
-
-        const match =
-          cookieHeader.match(
-            /(?:^|;\s*)nexora_session=([^;]+)/
+        const sessionToken =
+          getCookie(
+            request,
+            "nexora_session"
           );
 
-        if (!match) {
-          return Response.json(
+        if (!sessionToken) {
+          return json(
             {
               success: false,
               error: "Не авторизован"
             },
-            { status: 401 }
+            401
           );
         }
-
-        const sessionToken = match[1];
 
         const tokenHash =
           await hashToken(sessionToken);
@@ -608,19 +760,20 @@ export default {
           .first();
 
         if (!session) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Сессия недействительна"
             },
-            { status: 401 }
+            401
           );
         }
 
         if (
-          new Date(session.expires_at).getTime() <=
-          Date.now()
+          new Date(
+            session.expires_at
+          ).getTime() <= Date.now()
         ) {
           await env.DB
             .prepare(
@@ -629,23 +782,22 @@ export default {
             .bind(tokenHash)
             .run();
 
-          return new Response(
-            JSON.stringify({
+          return json(
+            {
               success: false,
               error: "Сессия истекла"
-            }),
+            },
+            401,
             {
-              status: 401,
-              headers: {
-                "Set-Cookie":
-                  "nexora_session=; HttpOnly; Secure; " +
-                  "SameSite=Lax; Path=/; Max-Age=0"
-              }
+              "Set-Cookie":
+                "nexora_session=; " +
+                "HttpOnly; Secure; SameSite=Lax; " +
+                "Path=/; Max-Age=0"
             }
           );
         }
 
-        return Response.json({
+        return json({
           success: true,
           user: {
             id: session.user_id,
@@ -660,13 +812,18 @@ export default {
         });
 
       } catch (error) {
-        return Response.json(
+        console.error(
+          "ME ERROR:",
+          error
+        );
+
+        return json(
           {
             success: false,
             error:
               "Не удалось проверить сессию"
           },
-          { status: 500 }
+          500
         );
       }
     }
@@ -674,40 +831,42 @@ export default {
     // =========================
     // ВХОД
     // =========================
-    if (url.pathname === "/api/login") {
-
+    if (
+      url.pathname === "/api/login"
+    ) {
       if (request.method !== "POST") {
-        return Response.json(
+        return json(
           {
             success: false,
             error: "Method not allowed"
           },
-          { status: 405 }
-        );
-      }
-
-      const ip =
-        request.headers.get("CF-Connecting-IP") ||
-        "unknown";
-
-      const {
-        success: rateLimitSuccess
-      } = await env.RATE_LIMITER.limit({
-        key: "login:" + ip
-      });
-
-      if (!rateLimitSuccess) {
-        return Response.json(
-          {
-            success: false,
-            error:
-              "Слишком много попыток. Попробуйте позже."
-          },
-          { status: 429 }
+          405
         );
       }
 
       try {
+        const ip =
+          request.headers.get(
+            "CF-Connecting-IP"
+          ) || "unknown";
+
+        const {
+          success: rateLimitSuccess
+        } = await env.RATE_LIMITER.limit({
+          key: "login:" + ip
+        });
+
+        if (!rateLimitSuccess) {
+          return json(
+            {
+              success: false,
+              error:
+                "Слишком много попыток. Попробуйте позже."
+            },
+            429
+          );
+        }
+
         const data =
           await request.json();
 
@@ -716,13 +875,13 @@ export default {
           typeof data.email !== "string" ||
           typeof data.password !== "string"
         ) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Email и пароль обязательны"
             },
-            { status: 400 }
+            400
           );
         }
 
@@ -736,7 +895,10 @@ export default {
 
         const user = await env.DB
           .prepare(
-            `SELECT id, email, password_hash
+            `SELECT
+               id,
+               email,
+               password_hash
              FROM users
              WHERE email = ?
              LIMIT 1`
@@ -745,64 +907,39 @@ export default {
           .first();
 
         if (!user) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Неверный email или пароль"
             },
-            { status: 401 }
+            401
           );
         }
 
-        // Проверяем пароль.
-        const encoder =
-          new TextEncoder();
-
-        const passwordData =
-          encoder.encode(password);
-
-        const hashBuffer =
-          await crypto.subtle.digest(
-            "SHA-256",
-            passwordData
-          );
-
-        const hashArray =
-          Array.from(
-            new Uint8Array(hashBuffer)
-          );
-
         const passwordHash =
-          hashArray
-            .map((b) =>
-              b.toString(16).padStart(2, "0")
-            )
-            .join("");
+          await hashToken(password);
 
         if (
           passwordHash !==
           user.password_hash
         ) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Неверный email или пароль"
             },
-            { status: 401 }
+            401
           );
         }
 
-        // Создаём случайный токен сессии.
         const sessionToken =
           generateToken();
 
-        // В базе храним только хеш токена.
         const tokenHash =
           await hashToken(sessionToken);
 
-        // Сессия действует 30 дней.
         const expiresAt =
           new Date(
             Date.now() +
@@ -812,7 +949,7 @@ export default {
         await env.DB
           .prepare(
             `INSERT INTO sessions
-              (user_id, token_hash, expires_at)
+             (user_id, token_hash, expires_at)
              VALUES (?, ?, ?)`
           )
           .bind(
@@ -822,33 +959,34 @@ export default {
           )
           .run();
 
-        return new Response(
-          JSON.stringify({
+        return json(
+          {
             success: true,
             message:
               "Вход выполнен успешно"
-          }),
+          },
+          200,
           {
-            status: 200,
-            headers: {
-              "Content-Type":
-                "application/json",
-              "Set-Cookie":
-                `nexora_session=${sessionToken}; ` +
-                `HttpOnly; Secure; SameSite=Lax; Path=/; ` +
-                `Max-Age=2592000`
-            }
+            "Set-Cookie":
+              `nexora_session=${sessionToken}; ` +
+              `HttpOnly; Secure; SameSite=Lax; ` +
+              `Path=/; Max-Age=2592000`
           }
         );
 
       } catch (error) {
-        return Response.json(
+        console.error(
+          "LOGIN ERROR:",
+          error
+        );
+
+        return json(
           {
             success: false,
             error:
               "Не удалось выполнить вход"
           },
-          { status: 500 }
+          500
         );
       }
     }
@@ -856,76 +994,79 @@ export default {
     // =========================
     // РЕГИСТРАЦИЯ
     // =========================
-    if (url.pathname === "/api/register") {
-
+    if (
+      url.pathname === "/api/register"
+    ) {
       if (request.method !== "POST") {
-        return Response.json(
+        return json(
           {
             success: false,
             error: "Method not allowed"
           },
-          { status: 405 }
-        );
-      }
-
-      const ip =
-        request.headers.get("CF-Connecting-IP") ||
-        "unknown";
-
-      const { success } =
-        await env.RATE_LIMITER.limit({
-          key: "register:" + ip
-        });
-
-      if (!success) {
-        return Response.json(
-          {
-            success: false,
-            error:
-              "Слишком много попыток. Попробуйте позже."
-          },
-          { status: 429 }
-        );
-      }
-
-      const contentType =
-        request.headers.get("content-type") ||
-        "";
-
-      if (
-        !contentType
-          .toLowerCase()
-          .includes("application/json")
-      ) {
-        return Response.json(
-          {
-            success: false,
-            error:
-              "Неверный формат запроса"
-          },
-          { status: 415 }
-        );
-      }
-
-      const contentLength =
-        Number(
-          request.headers.get(
-            "content-length"
-          ) || "0"
-        );
-
-      if (contentLength > 4096) {
-        return Response.json(
-          {
-            success: false,
-            error:
-              "Слишком большой запрос"
-          },
-          { status: 413 }
+          405
         );
       }
 
       try {
+        const ip =
+          request.headers.get(
+            "CF-Connecting-IP"
+          ) || "unknown";
+
+        const { success } =
+          await env.RATE_LIMITER.limit({
+            key: "register:" + ip
+          });
+
+        if (!success) {
+          return json(
+            {
+              success: false,
+              error:
+                "Слишком много попыток. Попробуйте позже."
+            },
+            429
+          );
+        }
+
+        const contentType =
+          request.headers.get(
+            "content-type"
+          ) || "";
+
+        if (
+          !contentType
+            .toLowerCase()
+            .includes("application/json")
+        ) {
+          return json(
+            {
+              success: false,
+              error:
+                "Неверный формат запроса"
+            },
+            415
+          );
+        }
+
+        const contentLength =
+          Number(
+            request.headers.get(
+              "content-length"
+            ) || "0"
+          );
+
+        if (contentLength > 4096) {
+          return json(
+            {
+              success: false,
+              error:
+                "Слишком большой запрос"
+            },
+            413
+          );
+        }
+
         const data =
           await request.json();
 
@@ -934,13 +1075,13 @@ export default {
           typeof data.email !== "string" ||
           typeof data.password !== "string"
         ) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Email и пароль обязательны"
             },
-            { status: 400 }
+            400
           );
         }
 
@@ -952,18 +1093,17 @@ export default {
         const password =
           data.password;
 
-        // Проверка email.
         if (
           email.length < 5 ||
           email.length > 254
         ) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Некорректный email"
             },
-            { status: 400 }
+            400
           );
         }
 
@@ -971,32 +1111,30 @@ export default {
           /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
         if (!emailRegex.test(email)) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Некорректный email"
             },
-            { status: 400 }
+            400
           );
         }
 
-        // Минимальная длина пароля.
         if (
           password.length < 8 ||
           password.length > 128
         ) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Пароль должен содержать от 8 до 128 символов"
             },
-            { status: 400 }
+            400
           );
         }
 
-        // Проверяем, существует ли пользователь.
         const existingUser =
           await env.DB
             .prepare(
@@ -1006,46 +1144,23 @@ export default {
             .first();
 
         if (existingUser) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Этот email уже зарегистрирован"
             },
-            { status: 409 }
+            409
           );
         }
 
-        // Хешируем пароль через Web Crypto.
-        const encoder =
-          new TextEncoder();
-
-        const passwordData =
-          encoder.encode(password);
-
-        const hashBuffer =
-          await crypto.subtle.digest(
-            "SHA-256",
-            passwordData
-          );
-
-        const hashArray =
-          Array.from(
-            new Uint8Array(hashBuffer)
-          );
-
         const passwordHash =
-          hashArray
-            .map((b) =>
-              b.toString(16).padStart(2, "0")
-            )
-            .join("");
+          await hashToken(password);
 
-        // Создаём пользователя.
         await env.DB
           .prepare(
             `INSERT INTO users
-              (email, password_hash)
+             (email, password_hash)
              VALUES (?, ?)`
           )
           .bind(
@@ -1054,36 +1169,41 @@ export default {
           )
           .run();
 
-        return Response.json(
+        return json(
           {
             success: true,
             message:
               "Регистрация успешна!"
           },
-          { status: 201 }
+          201
         );
 
       } catch (error) {
+        console.error(
+          "REGISTER ERROR:",
+          error
+        );
+
         if (
           String(error).includes("UNIQUE")
         ) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Этот email уже зарегистрирован"
             },
-            { status: 409 }
+            409
           );
         }
 
-        return Response.json(
+        return json(
           {
             success: false,
             error:
               "Не удалось зарегистрировать пользователя"
           },
-          { status: 500 }
+          500
         );
       }
     }
@@ -1094,75 +1214,76 @@ export default {
     if (
       url.pathname === "/api/early-access"
     ) {
-
-      const ip =
-        request.headers.get("CF-Connecting-IP") ||
-        "unknown";
-
-      const { success } =
-        await env.RATE_LIMITER.limit({
-          key: "early-access:" + ip
-        });
-
-      if (!success) {
-        return Response.json(
-          {
-            success: false,
-            error:
-              "Слишком много запросов. Попробуйте позже."
-          },
-          { status: 429 }
-        );
-      }
-
       if (request.method !== "POST") {
-        return Response.json(
+        return json(
           {
             success: false,
             error: "Method not allowed"
           },
-          { status: 405 }
-        );
-      }
-
-      const contentType =
-        request.headers.get("content-type") ||
-        "";
-
-      if (
-        !contentType
-          .toLowerCase()
-          .includes("application/json")
-      ) {
-        return Response.json(
-          {
-            success: false,
-            error:
-              "Неверный формат запроса"
-          },
-          { status: 415 }
-        );
-      }
-
-      const contentLength =
-        Number(
-          request.headers.get(
-            "content-length"
-          ) || "0"
-        );
-
-      if (contentLength > 2048) {
-        return Response.json(
-          {
-            success: false,
-            error:
-              "Слишком большой запрос"
-          },
-          { status: 413 }
+          405
         );
       }
 
       try {
+        const ip =
+          request.headers.get(
+            "CF-Connecting-IP"
+          ) || "unknown";
+
+        const { success } =
+          await env.RATE_LIMITER.limit({
+            key: "early-access:" + ip
+          });
+
+        if (!success) {
+          return json(
+            {
+              success: false,
+              error:
+                "Слишком много запросов. Попробуйте позже."
+            },
+            429
+          );
+        }
+
+        const contentType =
+          request.headers.get(
+            "content-type"
+          ) || "";
+
+        if (
+          !contentType
+            .toLowerCase()
+            .includes("application/json")
+        ) {
+          return json(
+            {
+              success: false,
+              error:
+                "Неверный формат запроса"
+            },
+            415
+          );
+        }
+
+        const contentLength =
+          Number(
+            request.headers.get(
+              "content-length"
+            ) || "0"
+          );
+
+        if (contentLength > 2048) {
+          return json(
+            {
+              success: false,
+              error:
+                "Слишком большой запрос"
+            },
+            413
+          );
+        }
+
         const data =
           await request.json();
 
@@ -1170,13 +1291,13 @@ export default {
           !data ||
           typeof data.email !== "string"
         ) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Email не указан"
             },
-            { status: 400 }
+            400
           );
         }
 
@@ -1189,13 +1310,13 @@ export default {
           email.length < 5 ||
           email.length > 254
         ) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Некорректный email"
             },
-            { status: 400 }
+            400
           );
         }
 
@@ -1203,13 +1324,13 @@ export default {
           /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
         if (!emailRegex.test(email)) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Некорректный email"
             },
-            { status: 400 }
+            400
           );
         }
 
@@ -1220,34 +1341,38 @@ export default {
           .bind(email)
           .run();
 
-        return Response.json({
+        return json({
           success: true,
           message:
             "Вы добавлены в список раннего доступа!"
         });
 
       } catch (error) {
+        console.error(
+          "EARLY ACCESS ERROR:",
+          error
+        );
 
         if (
           String(error).includes("UNIQUE")
         ) {
-          return Response.json(
+          return json(
             {
               success: false,
               error:
                 "Этот email уже зарегистрирован"
             },
-            { status: 409 }
+            409
           );
         }
 
-        return Response.json(
+        return json(
           {
             success: false,
             error:
               "Не удалось обработать запрос"
           },
-          { status: 500 }
+          500
         );
       }
     }
@@ -1258,18 +1383,14 @@ export default {
     if (
       url.pathname === "/account.html"
     ) {
-
       try {
-        const cookieHeader =
-          request.headers.get("Cookie") ||
-          "";
-
-        const match =
-          cookieHeader.match(
-            /(?:^|;\s*)nexora_session=([^;]+)/
+        const sessionToken =
+          getCookie(
+            request,
+            "nexora_session"
           );
 
-        if (!match) {
+        if (!sessionToken) {
           return Response.redirect(
             new URL(
               "/login.html",
@@ -1278,9 +1399,6 @@ export default {
             302
           );
         }
-
-        const sessionToken =
-          match[1];
 
         const tokenHash =
           await hashToken(sessionToken);
@@ -1328,6 +1446,11 @@ export default {
         }
 
       } catch (error) {
+        console.error(
+          "ACCOUNT PROTECTION ERROR:",
+          error
+        );
+
         return Response.redirect(
           new URL(
             "/login.html",
@@ -1339,7 +1462,7 @@ export default {
     }
 
     // =========================
-    // САЙТ
+    // САЙТ / ASSETS
     // =========================
     return env.ASSETS.fetch(request);
   }
