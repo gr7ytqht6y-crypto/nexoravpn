@@ -722,6 +722,7 @@ export default {
 
       const sessionId = Date.now();
 const sessionToken = generateToken();
+const tokenHash = await hashToken(sessionToken);
 
 await env.DB.prepare(`
   INSERT INTO sessions (
@@ -740,20 +741,27 @@ await env.DB.prepare(`
   .bind(
     sessionId,
     user.id,
-    await hashToken(sessionToken)
+    tokenHash
   )
   .run();
 
-      return json(
-        {
-          success: true,
-          user: {
-            id: user.id,
-            email: user.email
-          }
-        },
-        200
-      );
+return new Response(
+  JSON.stringify({
+    success: true,
+    user: {
+      id: user.id,
+      email: user.email
+    }
+  }),
+  {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      "Set-Cookie": `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`
+    }
+  }
+);
     }
 
     /*
