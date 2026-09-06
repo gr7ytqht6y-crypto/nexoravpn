@@ -720,8 +720,7 @@ export default {
         );
       }
 
-      const sessionId =
-        crypto.randomUUID();
+      const sessionId = Date.now();
 
       await env.DB.prepare(`
         INSERT INTO sessions (
