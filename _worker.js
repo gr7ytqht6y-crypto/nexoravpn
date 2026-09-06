@@ -57,7 +57,7 @@ async function getAdminUser(env, request) {
     FROM sessions
     JOIN users ON users.id = sessions.user_id
     WHERE sessions.id = ?
-      AND sessions.expires_at > datetime('now')
+      AND julianday(sessions.expires_at) > julianday('now')
   `)
     .bind(sessionId)
     .first();
