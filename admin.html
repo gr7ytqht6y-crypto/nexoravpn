@@ -97,18 +97,11 @@
       font-size: 15px;
     }
 
-    /* =========================
-       СТАТИСТИКА
-       ========================= */
-
     .stats {
       display: grid;
-
       grid-template-columns:
         repeat(3, minmax(0, 1fr));
-
       gap: 16px;
-
       margin-bottom: 18px;
     }
 
@@ -123,7 +116,6 @@
         );
 
       border: 1px solid #202020;
-
       border-radius: 18px;
 
       box-shadow:
@@ -132,112 +124,82 @@
 
     .stat-label {
       color: #777;
-
       font-size: 13px;
-
       margin-bottom: 9px;
     }
 
     .stat-value {
       font-size: 30px;
-
       font-weight: 800;
-
       letter-spacing: -0.5px;
     }
 
-    /* =========================
-       СИСТЕМА
-       ========================= */
-
     .system-grid {
       display: grid;
-
       grid-template-columns:
         repeat(3, minmax(0, 1fr));
-
       gap: 12px;
-
       margin-bottom: 25px;
     }
 
     .system-card {
       display: flex;
-
       align-items: center;
-
       gap: 11px;
 
       padding: 15px 17px;
 
       background: #0d0d0d;
-
       border: 1px solid #202020;
-
       border-radius: 14px;
     }
 
     .system-dot {
       width: 9px;
       height: 9px;
-
       border-radius: 50%;
-
       flex-shrink: 0;
     }
 
     .online {
       background: #4ade80;
-
       box-shadow:
         0 0 10px rgba(74, 222, 128, 0.5);
     }
 
     .waiting {
       background: #facc15;
-
       box-shadow:
         0 0 10px rgba(250, 204, 21, 0.35);
     }
 
     .system-name {
       font-size: 13px;
-
       font-weight: 600;
     }
 
     .system-status {
       margin-left: auto;
-
       color: #666;
-
       font-size: 11px;
     }
 
-    /* =========================
-       ПАНЕЛЬ
-       ========================= */
-
     .panel {
       background: #0c0c0c;
-
       border: 1px solid #202020;
-
       border-radius: 20px;
-
       overflow: hidden;
 
       box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.3);
+
+      margin-bottom: 22px;
     }
 
     .panel-header {
       display: flex;
-
       justify-content: space-between;
-
       align-items: center;
-
       gap: 15px;
 
       padding: 20px 24px;
@@ -247,29 +209,20 @@
 
     .panel-title {
       font-size: 18px;
-
       font-weight: 700;
     }
 
     .panel-subtitle {
       margin-top: 4px;
-
       color: #666;
-
       font-size: 12px;
     }
 
     .actions {
       display: flex;
-
       align-items: center;
-
       gap: 9px;
     }
-
-    /* =========================
-       ПОИСК
-       ========================= */
 
     .search {
       width: 230px;
@@ -277,15 +230,12 @@
       padding: 10px 13px;
 
       border-radius: 10px;
-
       border: 1px solid #292929;
 
       background: #151515;
-
       color: #fff;
 
       outline: none;
-
       font-size: 13px;
     }
 
@@ -299,17 +249,13 @@
 
     .refresh {
       border: 1px solid #292929;
-
       background: #151515;
-
       color: #fff;
 
       padding: 10px 14px;
 
       border-radius: 10px;
-
       cursor: pointer;
-
       font-size: 13px;
     }
 
@@ -317,19 +263,13 @@
       border-color: #e50914;
     }
 
-    /* =========================
-       ТАБЛИЦА
-       ========================= */
-
     .table-wrapper {
       overflow-x: auto;
     }
 
     table {
       width: 100%;
-
       border-collapse: collapse;
-
       min-width: 760px;
     }
 
@@ -339,13 +279,10 @@
       padding: 15px 20px;
 
       background: #101010;
-
       color: #777;
 
       font-size: 11px;
-
       text-transform: uppercase;
-
       letter-spacing: 0.7px;
     }
 
@@ -355,7 +292,6 @@
       border-top: 1px solid #191919;
 
       color: #ddd;
-
       font-size: 14px;
     }
 
@@ -369,25 +305,17 @@
 
     .user-id {
       color: #666;
-
       font-weight: 600;
     }
 
     .email {
       color: #fff;
-
       font-weight: 600;
     }
 
-    /* =========================
-       СТАТУС ПОДПИСКИ
-       ========================= */
-
     .status {
       display: inline-flex;
-
       align-items: center;
-
       gap: 7px;
 
       padding: 6px 10px;
@@ -395,7 +323,6 @@
       border-radius: 999px;
 
       font-size: 12px;
-
       font-weight: 700;
     }
 
@@ -406,49 +333,147 @@
       height: 6px;
 
       border-radius: 50%;
-
       background: currentColor;
     }
 
     .status.active {
       color: #4ade80;
-
       background:
         rgba(74, 222, 128, 0.1);
     }
 
     .status.inactive {
       color: #888;
-
       background:
         rgba(255, 255, 255, 0.06);
     }
 
     .empty {
       text-align: center;
-
       padding: 45px;
-
       color: #666;
     }
 
     .error {
       color: #ff4d57;
-
       text-align: center;
-
       padding: 35px;
     }
 
     /* =========================
-       НИЗ
+       ВОССТАНОВЛЕНИЕ ПАРОЛЯ
        ========================= */
+
+    .reset-panel {
+      padding: 24px;
+    }
+
+    .reset-description {
+      margin: 7px 0 18px;
+
+      color: #777;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .reset-form {
+      display: flex;
+      gap: 10px;
+    }
+
+    .reset-input {
+      flex: 1;
+
+      min-width: 0;
+
+      padding: 12px 14px;
+
+      border-radius: 10px;
+      border: 1px solid #292929;
+
+      background: #151515;
+      color: #fff;
+
+      outline: none;
+      font-size: 14px;
+    }
+
+    .reset-input:focus {
+      border-color: #e50914;
+    }
+
+    .reset-input::placeholder {
+      color: #666;
+    }
+
+    .reset-button {
+      border: 1px solid #e50914;
+
+      background: #e50914;
+      color: #fff;
+
+      padding: 12px 17px;
+
+      border-radius: 10px;
+
+      cursor: pointer;
+
+      font-size: 13px;
+      font-weight: 700;
+
+      white-space: nowrap;
+    }
+
+    .reset-button:hover {
+      background: #c70812;
+    }
+
+    .reset-button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .reset-result {
+      margin-top: 15px;
+
+      padding: 13px;
+
+      border-radius: 10px;
+
+      background: #111;
+      border: 1px solid #202020;
+
+      font-size: 13px;
+      line-height: 1.5;
+
+      display: none;
+    }
+
+    .reset-result.success {
+      display: block;
+      color: #4ade80;
+    }
+
+    .reset-result.error-result {
+      display: block;
+      color: #ff4d57;
+    }
+
+    .reset-link {
+      display: block;
+
+      margin-top: 8px;
+
+      color: #fff;
+
+      word-break: break-all;
+
+      text-decoration: underline;
+    }
 
     .bottom {
       display: flex;
-
       justify-content: space-between;
-
       align-items: center;
 
       margin-top: 22px;
@@ -456,9 +481,7 @@
 
     .back {
       color: #888;
-
       text-decoration: none;
-
       font-size: 14px;
     }
 
@@ -468,13 +491,8 @@
 
     .secure {
       color: #555;
-
       font-size: 12px;
     }
-
-    /* =========================
-       MOBILE
-       ========================= */
 
     @media (max-width: 800px) {
 
@@ -496,9 +514,7 @@
 
       .panel-header {
         align-items: stretch;
-
         flex-direction: column;
-
         padding: 18px;
       }
 
@@ -508,7 +524,6 @@
 
       .search {
         flex: 1;
-
         width: auto;
       }
 
@@ -516,11 +531,17 @@
         font-size: 34px;
       }
 
+      .reset-form {
+        flex-direction: column;
+      }
+
+      .reset-button {
+        width: 100%;
+      }
+
       .bottom {
         flex-direction: column;
-
         align-items: flex-start;
-
         gap: 12px;
       }
     }
@@ -553,10 +574,7 @@
 
 </header>
 
-
 <main>
-
-  <!-- HERO -->
 
   <section class="hero">
 
@@ -569,9 +587,6 @@
     </p>
 
   </section>
-
-
-  <!-- СТАТИСТИКА -->
 
   <section class="stats">
 
@@ -590,7 +605,6 @@
 
     </div>
 
-
     <div class="stat-card">
 
       <div class="stat-label">
@@ -605,7 +619,6 @@
       </div>
 
     </div>
-
 
     <div class="stat-card">
 
@@ -624,9 +637,6 @@
 
   </section>
 
-
-  <!-- СИСТЕМА -->
-
   <section class="system-grid">
 
     <div class="system-card">
@@ -643,7 +653,6 @@
 
     </div>
 
-
     <div class="system-card">
 
       <div class="system-dot online"></div>
@@ -657,7 +666,6 @@
       </div>
 
     </div>
-
 
     <div class="system-card">
 
@@ -674,9 +682,6 @@
     </div>
 
   </section>
-
-
-  <!-- ПОЛЬЗОВАТЕЛИ -->
 
   <section class="panel">
 
@@ -696,7 +701,6 @@
         </div>
 
       </div>
-
 
       <div class="actions">
 
@@ -718,7 +722,6 @@
 
     </div>
 
-
     <div class="table-wrapper">
 
       <table>
@@ -727,38 +730,23 @@
 
           <tr>
 
-            <th>
-              ID
-            </th>
+            <th>ID</th>
 
-            <th>
-              Email
-            </th>
+            <th>Email</th>
 
-            <th>
-              Регистрация
-            </th>
+            <th>Регистрация</th>
 
-            <th>
-              Статус
-            </th>
+            <th>Статус</th>
 
-            <th>
-              Тариф
-            </th>
+            <th>Тариф</th>
 
-            <th>
-              Истекает
-            </th>
+            <th>Истекает</th>
 
           </tr>
 
         </thead>
 
-
-        <tbody id="users">
-
-        </tbody>
+        <tbody id="users"></tbody>
 
       </table>
 
@@ -766,6 +754,50 @@
 
   </section>
 
+  <!-- ВОССТАНОВЛЕНИЕ ПАРОЛЯ -->
+
+  <section class="panel">
+
+    <div class="reset-panel">
+
+      <div class="panel-title">
+        Восстановление пароля
+      </div>
+
+      <div class="reset-description">
+        Введи email зарегистрированного пользователя.
+        Будет создана тестовая ссылка восстановления,
+        действующая 15 минут.
+      </div>
+
+      <div class="reset-form">
+
+        <input
+          id="resetEmail"
+          class="reset-input"
+          type="email"
+          placeholder="Email пользователя"
+          autocomplete="off"
+        >
+
+        <button
+          id="resetButton"
+          class="reset-button"
+          onclick="generateResetLink()"
+        >
+          Создать ссылку
+        </button>
+
+      </div>
+
+      <div
+        id="resetResult"
+        class="reset-result"
+      ></div>
+
+    </div>
+
+  </section>
 
   <div class="bottom">
 
@@ -784,15 +816,9 @@
 
 </main>
 
-
 <script>
 
   let allUsers = [];
-
-
-  // =========================
-  // ЗАГРУЗКА ПОЛЬЗОВАТЕЛЕЙ
-  // =========================
 
   async function loadUsers() {
 
@@ -811,7 +837,6 @@
       </tr>
       `;
 
-
     try {
 
       const response =
@@ -823,10 +848,8 @@
           }
         );
 
-
       const result =
         await response.json();
-
 
       if (!result.success) {
 
@@ -843,15 +866,12 @@
 
       }
 
-
       allUsers =
         result.users || [];
-
 
       updateStats(allUsers);
 
       renderUsers(allUsers);
-
 
     } catch (error) {
 
@@ -878,23 +898,16 @@
 
   }
 
-
-  // =========================
-  // СТАТИСТИКА
-  // =========================
-
   function updateStats(users) {
 
     const total =
       users.length;
-
 
     const active =
       users.filter(
         user =>
           user.subscription_status === "active"
       ).length;
-
 
     const today =
       users.filter(user => {
@@ -922,24 +935,20 @@
 
       }).length;
 
-
     document.getElementById(
       "totalUsers"
     ).textContent =
       total;
-
 
     document.getElementById(
       "activeUsers"
     ).textContent =
       active;
 
-
     document.getElementById(
       "todayUsers"
     ).textContent =
       today;
-
 
     document.getElementById(
       "userCount"
@@ -948,16 +957,10 @@
 
   }
 
-
-  // =========================
-  // ОТОБРАЖЕНИЕ
-  // =========================
-
   function renderUsers(users) {
 
     const tbody =
       document.getElementById("users");
-
 
     if (users.length === 0) {
 
@@ -977,14 +980,12 @@
 
     }
 
-
     tbody.innerHTML =
       users.map(user => {
 
         const active =
           user.subscription_status ===
           "active";
-
 
         return `
           <tr>
@@ -1048,11 +1049,6 @@
 
   }
 
-
-  // =========================
-  // ПОИСК
-  // =========================
-
   document
     .getElementById("search")
     .addEventListener(
@@ -1064,7 +1060,6 @@
             .trim()
             .toLowerCase();
 
-
         if (!query) {
 
           renderUsers(allUsers);
@@ -1073,7 +1068,6 @@
 
         }
 
-
         const filtered =
           allUsers.filter(user =>
             String(user.email)
@@ -1081,16 +1075,10 @@
               .includes(query)
           );
 
-
         renderUsers(filtered);
 
       }
     );
-
-
-  // =========================
-  // ЗАЩИТА HTML
-  // =========================
 
   function escapeHtml(value) {
 
@@ -1103,15 +1091,115 @@
 
   }
 
+  // =========================
+  // ГЕНЕРАЦИЯ RESET LINK
+  // =========================
 
-  // =========================
-  // ЗАПУСК
-  // =========================
+  async function generateResetLink() {
+
+    const input =
+      document.getElementById("resetEmail");
+
+    const button =
+      document.getElementById("resetButton");
+
+    const result =
+      document.getElementById("resetResult");
+
+    const email =
+      input.value.trim().toLowerCase();
+
+    if (!email || !email.includes("@")) {
+
+      result.className =
+        "reset-result error-result";
+
+      result.textContent =
+        "Введите корректный email.";
+
+      return;
+
+    }
+
+    button.disabled = true;
+
+    button.textContent =
+      "Создание...";
+
+    result.className =
+      "reset-result";
+
+    result.textContent =
+      "";
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/test-reset-link",
+          {
+            method: "POST",
+
+            credentials: "same-origin",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              email
+            })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok || !data.success) {
+
+        throw new Error(
+          data.error ||
+          "Не удалось создать ссылку"
+        );
+
+      }
+
+      result.className =
+        "reset-result success";
+
+      result.innerHTML =
+        `
+        Ссылка создана. Она действует 15 минут.
+        <a
+          class="reset-link"
+          href="${escapeHtml(data.reset_url)}"
+        >
+          ${escapeHtml(data.reset_url)}
+        </a>
+        `;
+
+    } catch (error) {
+
+      result.className =
+        "reset-result error-result";
+
+      result.textContent =
+        error.message ||
+        "Ошибка соединения.";
+
+    } finally {
+
+      button.disabled = false;
+
+      button.textContent =
+        "Создать ссылку";
+
+    }
+
+  }
 
   loadUsers();
-
-
-  // Автообновление каждые 60 секунд
 
   setInterval(
     loadUsers,
