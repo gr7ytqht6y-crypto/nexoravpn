@@ -721,24 +721,28 @@ export default {
       }
 
       const sessionId = Date.now();
+const sessionToken = generateToken();
 
-      await env.DB.prepare(`
-        INSERT INTO sessions (
-          id,
-          user_id,
-          expires_at
-        )
-        VALUES (
-          ?,
-          ?,
-          datetime('now', '+30 days')
-        )
-      `)
-        .bind(
-          sessionId,
-          user.id
-        )
-        .run();
+await env.DB.prepare(`
+  INSERT INTO sessions (
+    id,
+    user_id,
+    token_hash,
+    expires_at
+  )
+  VALUES (
+    ?,
+    ?,
+    ?,
+    datetime('now', '+30 days')
+  )
+`)
+  .bind(
+    sessionId,
+    user.id,
+    await hashToken(sessionToken)
+  )
+  .run();
 
       return json(
         {
