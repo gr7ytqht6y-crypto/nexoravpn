@@ -52,29 +52,25 @@ async function getAdminUser(env, request) {
 
   if (!sessionId) return null;
 
-  const session = await env.DB.prepare(`
-    SELECT users.*
+  const user = await env.DB.prepare(`
+    SELECT
+      users.id,
+      users.email,
+      users.created_at
     FROM sessions
-    JOIN users ON users.id = sessions.user_id
+    JOIN users
+      ON users.id = sessions.user_id
+    JOIN admins
+      ON admins.user_id = users.id
     WHERE sessions.id = ?
-      AND julianday(sessions.expires_at) > julianday('now')
+      AND sessions.expires_at > datetime('now')
   `)
     .bind(sessionId)
     .first();
 
-  if (!session) return null;
+  if (!user) return null;
 
-  const admin = await env.DB.prepare(`
-    SELECT *
-    FROM admins
-    WHERE user_id = ?
-  `)
-    .bind(session.id)
-    .first();
-
-  if (!admin) return null;
-
-  return session;
+  return user;
 }
 
 async function checkRateLimit(env, request, key, limit = 10) {
