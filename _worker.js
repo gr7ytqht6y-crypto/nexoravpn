@@ -502,39 +502,42 @@ export default {
     }
 
     /*
-     * ADMIN USERS
-     */
+ * ADMIN USERS
+ */
 
-    if (
-      url.pathname === "/api/admin/users" &&
-      request.method === "GET"
-    ) {
-      const admin = await getAdminUser(env, request);
+if (
+  url.pathname === "/api/admin/users" &&
+  request.method === "GET"
+) {
+  const admin = await getAdminUser(env, request);
 
-      if (!admin) {
-        return json(
-          {
-            success: false,
-            error: "Доступ запрещён"
-          },
-          403
-        );
-      }
+  if (!admin) {
+    return json(
+      {
+        success: false,
+        error: "Доступ запрещён"
+      },
+      403
+    );
+  }
 
-      const result = await env.DB.prepare(`
-        SELECT
-          id,
-          email,
-          created_at
-        FROM users
-        ORDER BY id DESC
-      `).all();
+  const result = await env.DB.prepare(`
+    SELECT
+      id,
+      email,
+      created_at,
+      subscription_status,
+      subscription_plan,
+      subscription_expires_at
+    FROM users
+    ORDER BY id DESC
+  `).all();
 
-      return json({
-        success: true,
-        users: result.results || []
-      });
-    }
+  return json({
+    success: true,
+    users: result.results || []
+  });
+}
 
     /*
      * LOGOUT
