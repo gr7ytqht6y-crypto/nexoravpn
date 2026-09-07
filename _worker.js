@@ -92,19 +92,194 @@ async function checkRateLimit(env, request, key, limit = 10) {
   }
 }
 
+/*
+ * SEND PASSWORD RESET EMAIL THROUGH BREVO
+ */
+
+async function sendPasswordResetEmail(env, recipientEmail, resetUrl) {
+  if (!env.BREVO_API_KEY) {
+    console.error("BREVO_API_KEY is not configured");
+    return false;
+  }
+
+  const response = await fetch(
+    "https://api.brevo.com/v3/smtp/email",
+    {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": env.BREVO_API_KEY,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        sender: {
+          name: "NexoraVPN",
+          email: "nexoravpn7@gmail.com"
+        },
+
+        to: [
+          {
+            email: recipientEmail
+          }
+        ],
+
+        subject: "NexoraVPN — восстановление пароля",
+
+        htmlContent: `
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexoraVPN — восстановление пароля</title>
+</head>
+
+<body style="
+  margin:0;
+  padding:0;
+  background:#f4f4f4;
+  font-family:Arial,Helvetica,sans-serif;
+">
+
+  <div style="
+    max-width:600px;
+    margin:40px auto;
+    background:#ffffff;
+    border-radius:12px;
+    padding:32px;
+    box-sizing:border-box;
+  ">
+
+    <h1 style="
+      margin-top:0;
+      color:#111111;
+      font-size:28px;
+    ">
+      NexoraVPN
+    </h1>
+
+    <h2 style="
+      color:#222222;
+      font-size:22px;
+    ">
+      Восстановление пароля
+    </h2>
+
+    <p style="
+      color:#444444;
+      font-size:16px;
+      line-height:1.6;
+    ">
+      Мы получили запрос на восстановление пароля
+      вашего аккаунта NexoraVPN.
+    </p>
+
+    <p style="
+      color:#444444;
+      font-size:16px;
+      line-height:1.6;
+    ">
+      Нажмите кнопку ниже, чтобы установить новый пароль:
+    </p>
+
+    <div style="
+      text-align:center;
+      margin:30px 0;
+    ">
+
+      <a
+        href="${resetUrl}"
+        style="
+          display:inline-block;
+          background:#e00000;
+          color:#ffffff;
+          text-decoration:none;
+          padding:14px 24px;
+          border-radius:8px;
+          font-size:16px;
+          font-weight:bold;
+        "
+      >
+        Восстановить пароль
+      </a>
+
+    </div>
+
+    <p style="
+      color:#666666;
+      font-size:14px;
+      line-height:1.5;
+    ">
+      Ссылка действительна в течение 15 минут.
+    </p>
+
+    <p style="
+      color:#666666;
+      font-size:14px;
+      line-height:1.5;
+    ">
+      Если вы не запрашивали восстановление пароля,
+      просто проигнорируйте это письмо.
+    </p>
+
+    <hr style="
+      border:none;
+      border-top:1px solid #eeeeee;
+      margin:30px 0;
+    ">
+
+    <p style="
+      color:#999999;
+      font-size:12px;
+    ">
+      NexoraVPN — Интернет. Без границ.
+    </p>
+
+  </div>
+
+</body>
+</html>
+        `,
+
+        textContent:
+`NexoraVPN — восстановление пароля
+
+Мы получили запрос на восстановление пароля вашего аккаунта NexoraVPN.
+
+Перейдите по ссылке, чтобы установить новый пароль:
+
+${resetUrl}
+
+Ссылка действительна в течение 15 минут.
+
+Если вы не запрашивали восстановление пароля, просто проигнорируйте это письмо.
+
+NexoraVPN — Интернет. Без границ.`
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+
+    console.error(
+      "Brevo email error:",
+      response.status,
+      errorText
+    );
+
+    return false;
+  }
+
+  return true;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
     /*
      * FORGOT PASSWORD
-     *
-     * Бесплатный режим:
-     * токен создаётся и сохраняется в базе,
-     * но письмо через Resend не отправляется.
-     *
-     * Для получения тестовой ссылки администратора
-     * используется /api/test-reset-link.
      */
 
     if (
@@ -169,6 +344,7 @@ export default {
        * Не сообщаем пользователю,
        * существует ли такой email.
        */
+
       if (!user) {
         return json({
           success: true,
@@ -180,6 +356,7 @@ export default {
       /*
        * Инвалидируем старые токены.
        */
+
       await env.DB.prepare(`
         UPDATE password_resets
         SET used = 1
@@ -195,6 +372,7 @@ export default {
       /*
        * Токен действует 15 минут.
        */
+
       await env.DB.prepare(`
         INSERT INTO password_resets (
           user_id,
@@ -215,6 +393,33 @@ export default {
         )
         .run();
 
+      /*
+       * Создаём ссылку восстановления.
+       */
+
+      const resetUrl =
+        `${url.origin}/reset-password.html?token=${token}`;
+
+      /*
+       * Отправляем письмо через Brevo.
+       *
+       * Даже если Brevo временно недоступен,
+       * наружу не сообщаем, существует ли аккаунт.
+       */
+
+      const emailSent =
+        await sendPasswordResetEmail(
+          env,
+          user.email,
+          resetUrl
+        );
+
+      if (!emailSent) {
+        console.error(
+          "Password reset email could not be sent"
+        );
+      }
+
       return json({
         success: true,
         message:
@@ -226,8 +431,6 @@ export default {
      * TEST RESET LINK
      *
      * Только для администратора.
-     * Позволяет получить ссылку восстановления
-     * без платного/внешнего email-сервиса.
      */
 
     if (
@@ -296,6 +499,7 @@ export default {
       /*
        * Инвалидируем предыдущие токены.
        */
+
       await env.DB.prepare(`
         UPDATE password_resets
         SET used = 1
@@ -414,7 +618,8 @@ export default {
           password_resets.*,
           users.email
         FROM password_resets
-        JOIN users ON users.id = password_resets.user_id
+        JOIN users
+          ON users.id = password_resets.user_id
         WHERE password_resets.token_hash = ?
       `)
         .bind(tokenHash)
@@ -440,7 +645,9 @@ export default {
         );
       }
 
-      const expiresAt = new Date(reset.expires_at).getTime();
+      const expiresAt = new Date(
+        reset.expires_at
+      ).getTime();
 
       if (
         Number.isNaN(expiresAt) ||
@@ -456,10 +663,13 @@ export default {
       }
 
       /*
-       * Сохраняем пароль в том же формате,
-       * который используется при регистрации.
+       * Сохраняем пароль
+       * в том же формате, который используется
+       * при регистрации.
        */
-      const passwordHash = await hashToken(password);
+
+      const passwordHash =
+        await hashToken(password);
 
       await env.DB.prepare(`
         UPDATE users
@@ -475,6 +685,7 @@ export default {
       /*
        * Помечаем токен использованным.
        */
+
       await env.DB.prepare(`
         UPDATE password_resets
         SET used = 1
@@ -484,10 +695,9 @@ export default {
         .run();
 
       /*
-       * Удаляем существующие сессии пользователя,
-       * чтобы после смены пароля старые сессии
-       * больше не работали.
+       * Удаляем существующие сессии пользователя.
        */
+
       await env.DB.prepare(`
         DELETE FROM sessions
         WHERE user_id = ?
@@ -502,42 +712,42 @@ export default {
     }
 
     /*
- * ADMIN USERS
- */
+     * ADMIN USERS
+     */
 
-if (
-  url.pathname === "/api/admin/users" &&
-  request.method === "GET"
-) {
-  const admin = await getAdminUser(env, request);
+    if (
+      url.pathname === "/api/admin/users" &&
+      request.method === "GET"
+    ) {
+      const admin = await getAdminUser(env, request);
 
-  if (!admin) {
-    return json(
-      {
-        success: false,
-        error: "Доступ запрещён"
-      },
-      403
-    );
-  }
+      if (!admin) {
+        return json(
+          {
+            success: false,
+            error: "Доступ запрещён"
+          },
+          403
+        );
+      }
 
-  const result = await env.DB.prepare(`
-    SELECT
-      id,
-      email,
-      created_at,
-      subscription_status,
-      subscription_plan,
-      subscription_expires_at
-    FROM users
-    ORDER BY id DESC
-  `).all();
+      const result = await env.DB.prepare(`
+        SELECT
+          id,
+          email,
+          created_at,
+          subscription_status,
+          subscription_plan,
+          subscription_expires_at
+        FROM users
+        ORDER BY id DESC
+      `).all();
 
-  return json({
-    success: true,
-    users: result.results || []
-  });
-}
+      return json({
+        success: true,
+        users: result.results || []
+      });
+    }
 
     /*
      * LOGOUT
@@ -720,47 +930,50 @@ if (
       }
 
       const sessionId = Date.now();
-const sessionToken = generateToken();
-const tokenHash = await hashToken(sessionToken);
+      const sessionToken = generateToken();
+      const tokenHash = await hashToken(
+        sessionToken
+      );
 
-await env.DB.prepare(`
-  INSERT INTO sessions (
-    id,
-    user_id,
-    token_hash,
-    expires_at
-  )
-  VALUES (
-    ?,
-    ?,
-    ?,
-    datetime('now', '+30 days')
-  )
-`)
-  .bind(
-    sessionId,
-    user.id,
-    tokenHash
-  )
-  .run();
+      await env.DB.prepare(`
+        INSERT INTO sessions (
+          id,
+          user_id,
+          token_hash,
+          expires_at
+        )
+        VALUES (
+          ?,
+          ?,
+          ?,
+          datetime('now', '+30 days')
+        )
+      `)
+        .bind(
+          sessionId,
+          user.id,
+          tokenHash
+        )
+        .run();
 
-return new Response(
-  JSON.stringify({
-    success: true,
-    user: {
-      id: user.id,
-      email: user.email
-    }
-  }),
-  {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": "no-store",
-      "Set-Cookie": `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`
-    }
-  }
-);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email
+          }
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+            "Set-Cookie":
+              `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`
+          }
+        }
+      );
     }
 
     /*
@@ -956,10 +1169,6 @@ return new Response(
             "Вы успешно записались в ранний доступ"
         });
       } catch (error) {
-        /*
-         * Например, если email уже существует
-         * и на таблице стоит UNIQUE.
-         */
         return json(
           {
             success: false,
