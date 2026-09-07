@@ -23,7 +23,7 @@ function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json; charset=UTF-8",
       "Cache-Control": "no-store"
     }
   });
@@ -68,13 +68,13 @@ async function getAdminUser(env, request) {
     .bind(sessionId)
     .first();
 
-  if (!user) return null;
-
-  return user;
+  return user || null;
 }
 
 async function checkRateLimit(env, request, key, limit = 10) {
-  if (!env.RATE_LIMITER) return true;
+  if (!env.RATE_LIMITER) {
+    return true;
+  }
 
   try {
     const ip =
@@ -87,45 +87,47 @@ async function checkRateLimit(env, request, key, limit = 10) {
     });
 
     return result.success;
-  } catch {
+  } catch (error) {
+    console.error("Rate limiter error:", error);
     return true;
   }
 }
 
 /*
- * SEND PASSWORD RESET EMAIL THROUGH BREVO
+ * BREVO
  */
 
-async function sendPasswordResetEmail(env, recipientEmail, resetUrl) {
+async function sendPasswordResetEmail(
+  env,
+  recipientEmail,
+  resetUrl
+) {
   if (!env.BREVO_API_KEY) {
-    console.error("BREVO_API_KEY is not configured");
-    return false;
+    console.error(
+      "BREVO_API_KEY is missing from Worker secrets"
+    );
+
+    return {
+      success: false,
+      error: "BREVO_API_KEY is not configured"
+    };
   }
 
-  const response = await fetch(
-    "https://api.brevo.com/v3/smtp/email",
-    {
-      method: "POST",
-      headers: {
-        "accept": "application/json",
-        "api-key": env.BREVO_API_KEY,
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({
-        sender: {
-          name: "NexoraVPN",
-          email: "nexoravpn7@gmail.com"
-        },
+  const payload = {
+    sender: {
+      name: "NexoraVPN",
+      email: "nexoravpn7@gmail.com"
+    },
 
-        to: [
-          {
-            email: recipientEmail
-          }
-        ],
+    to: [
+      {
+        email: recipientEmail
+      }
+    ],
 
-        subject: "NexoraVPN — восстановление пароля",
+    subject: "NexoraVPN — восстановление пароля",
 
-        htmlContent: `
+    htmlContent: `
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -151,7 +153,7 @@ async function sendPasswordResetEmail(env, recipientEmail, resetUrl) {
   ">
 
     <h1 style="
-      margin-top:0;
+      margin:0 0 10px 0;
       color:#111111;
       font-size:28px;
     ">
@@ -159,6 +161,7 @@ async function sendPasswordResetEmail(env, recipientEmail, resetUrl) {
     </h1>
 
     <h2 style="
+      margin:0 0 20px 0;
       color:#222222;
       font-size:22px;
     ">
@@ -191,10 +194,10 @@ async function sendPasswordResetEmail(env, recipientEmail, resetUrl) {
         href="${resetUrl}"
         style="
           display:inline-block;
-          background:#e00000;
-          color:#ffffff;
+          background:#39ff14;
+          color:#0b0f0d;
           text-decoration:none;
-          padding:14px 24px;
+          padding:14px 26px;
           border-radius:8px;
           font-size:16px;
           font-weight:bold;
@@ -239,9 +242,9 @@ async function sendPasswordResetEmail(env, recipientEmail, resetUrl) {
 
 </body>
 </html>
-        `,
+    `,
 
-        textContent:
+    textContent:
 `NexoraVPN — восстановление пароля
 
 Мы получили запрос на восстановление пароля вашего аккаунта NexoraVPN.
@@ -255,24 +258,79 @@ ${resetUrl}
 Если вы не запрашивали восстановление пароля, просто проигнорируйте это письмо.
 
 NexoraVPN — Интернет. Без границ.`
-      })
-    }
-  );
+  };
 
-  if (!response.ok) {
-    const errorText = await response.text();
+  try {
+    const response = await fetch(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        method: "POST",
 
-    console.error(
-      "Brevo email error:",
-      response.status,
-      errorText
+        headers: {
+          "accept": "application/json",
+          "api-key": env.BREVO_API_KEY,
+          "content-type": "application/json"
+        },
+
+        body: JSON.stringify(payload)
+      }
     );
 
-    return false;
-  }
+    const responseText = await response.text();
 
-  return true;
+    if (!response.ok) {
+      console.error(
+        "BREVO ERROR",
+        JSON.stringify({
+          status: response.status,
+          response: responseText
+        })
+      );
+
+      return {
+        success: false,
+        error: responseText,
+        status: response.status
+      };
+    }
+
+    let result = {};
+
+    try {
+      result = JSON.parse(responseText);
+    } catch {
+      result = {};
+    }
+
+    console.log(
+      "BREVO EMAIL SENT",
+      JSON.stringify({
+        recipient: recipientEmail,
+        messageId: result.messageId || null
+      })
+    );
+
+    return {
+      success: true,
+      messageId: result.messageId || null
+    };
+
+  } catch (error) {
+    console.error(
+      "BREVO FETCH ERROR",
+      error
+    );
+
+    return {
+      success: false,
+      error: String(error)
+    };
+  }
 }
+
+/*
+ * MAIN WORKER
+ */
 
 export default {
   async fetch(request, env) {
@@ -332,17 +390,33 @@ export default {
         );
       }
 
-      const user = await env.DB.prepare(`
-        SELECT id, email
-        FROM users
-        WHERE email = ?
-      `)
-        .bind(email)
-        .first();
+      let user;
+
+      try {
+        user = await env.DB.prepare(`
+          SELECT id, email
+          FROM users
+          WHERE email = ?
+        `)
+          .bind(email)
+          .first();
+      } catch (error) {
+        console.error(
+          "FORGOT PASSWORD DB ERROR",
+          error
+        );
+
+        return json(
+          {
+            success: false,
+            error: "Ошибка базы данных"
+          },
+          500
+        );
+      }
 
       /*
-       * Не сообщаем пользователю,
-       * существует ли такой email.
+       * Не раскрываем существование email.
        */
 
       if (!user) {
@@ -354,69 +428,134 @@ export default {
       }
 
       /*
-       * Инвалидируем старые токены.
+       * Делаем старые токены недействительными.
        */
 
-      await env.DB.prepare(`
-        UPDATE password_resets
-        SET used = 1
-        WHERE user_id = ?
-          AND used = 0
-      `)
-        .bind(user.id)
-        .run();
+      try {
+        await env.DB.prepare(`
+          UPDATE password_resets
+          SET used = 1
+          WHERE user_id = ?
+            AND used = 0
+        `)
+          .bind(user.id)
+          .run();
+      } catch (error) {
+        console.error(
+          "OLD RESET TOKENS DB ERROR",
+          error
+        );
+
+        return json(
+          {
+            success: false,
+            error: "Ошибка базы данных"
+          },
+          500
+        );
+      }
+
+      /*
+       * Создаём новый токен.
+       */
 
       const token = generateToken();
       const tokenHash = await hashToken(token);
 
-      /*
-       * Токен действует 15 минут.
-       */
+      try {
+        await env.DB.prepare(`
+          INSERT INTO password_resets (
+            user_id,
+            token_hash,
+            expires_at,
+            used
+          )
+          VALUES (
+            ?,
+            ?,
+            datetime('now', '+15 minutes'),
+            0
+          )
+        `)
+          .bind(
+            user.id,
+            tokenHash
+          )
+          .run();
+      } catch (error) {
+        console.error(
+          "RESET TOKEN INSERT ERROR",
+          error
+        );
 
-      await env.DB.prepare(`
-        INSERT INTO password_resets (
-          user_id,
-          token_hash,
-          expires_at,
-          used
-        )
-        VALUES (
-          ?,
-          ?,
-          datetime('now', '+15 minutes'),
-          0
-        )
-      `)
-        .bind(
-          user.id,
-          tokenHash
-        )
-        .run();
+        return json(
+          {
+            success: false,
+            error: "Не удалось создать токен"
+          },
+          500
+        );
+      }
 
       /*
-       * Создаём ссылку восстановления.
+       * Ссылка восстановления.
+       *
+       * Используем /reset-password
+       * вместо /reset-password.html
        */
 
       const resetUrl =
-        `${url.origin}/reset-password.html?token=${token}`;
+        `${url.origin}/reset-password?token=${encodeURIComponent(token)}`;
+
+      console.log(
+        "PASSWORD RESET URL CREATED",
+        resetUrl
+      );
 
       /*
-       * Отправляем письмо через Brevo.
-       *
-       * Даже если Brevo временно недоступен,
-       * наружу не сообщаем, существует ли аккаунт.
+       * Отправляем письмо.
        */
 
-      const emailSent =
+      const emailResult =
         await sendPasswordResetEmail(
           env,
           user.email,
           resetUrl
         );
 
-      if (!emailSent) {
+      if (!emailResult.success) {
         console.error(
-          "Password reset email could not be sent"
+          "PASSWORD RESET EMAIL FAILED",
+          JSON.stringify(emailResult)
+        );
+
+        /*
+         * Токен делаем недействительным,
+         * если письмо не отправилось.
+         */
+
+        try {
+          await env.DB.prepare(`
+            UPDATE password_resets
+            SET used = 1
+            WHERE token_hash = ?
+          `)
+            .bind(tokenHash)
+            .run();
+        } catch (error) {
+          console.error(
+            "TOKEN INVALIDATION ERROR",
+            error
+          );
+        }
+
+        return json(
+          {
+            success: false,
+            error:
+              "Не удалось отправить письмо. Попробуйте ещё раз позже."
+          },
+          500
         );
       }
 
@@ -430,14 +569,18 @@ export default {
     /*
      * TEST RESET LINK
      *
-     * Только для администратора.
+     * Только администратор.
      */
 
     if (
       url.pathname === "/api/test-reset-link" &&
       request.method === "POST"
     ) {
-      const admin = await getAdminUser(env, request);
+      const admin =
+        await getAdminUser(
+          env,
+          request
+        );
 
       if (!admin) {
         return json(
@@ -478,13 +621,14 @@ export default {
         );
       }
 
-      const user = await env.DB.prepare(`
-        SELECT id, email
-        FROM users
-        WHERE email = ?
-      `)
-        .bind(email)
-        .first();
+      const user =
+        await env.DB.prepare(`
+          SELECT id, email
+          FROM users
+          WHERE email = ?
+        `)
+          .bind(email)
+          .first();
 
       if (!user) {
         return json(
@@ -496,10 +640,6 @@ export default {
         );
       }
 
-      /*
-       * Инвалидируем предыдущие токены.
-       */
-
       await env.DB.prepare(`
         UPDATE password_resets
         SET used = 1
@@ -510,11 +650,13 @@ export default {
         .run();
 
       const token = generateToken();
-      const tokenHash = await hashToken(token);
+      const tokenHash =
+        await hashToken(token);
 
-      const expiresAt = new Date(
-        Date.now() + 15 * 60 * 1000
-      ).toISOString();
+      const expiresAt =
+        new Date(
+          Date.now() + 15 * 60 * 1000
+        ).toISOString();
 
       await env.DB.prepare(`
         INSERT INTO password_resets (
@@ -538,7 +680,7 @@ export default {
         .run();
 
       const resetUrl =
-        `${url.origin}/reset-password.html?token=${token}`;
+        `${url.origin}/reset-password?token=${encodeURIComponent(token)}`;
 
       return json({
         success: true,
@@ -555,12 +697,13 @@ export default {
       url.pathname === "/api/reset-password" &&
       request.method === "POST"
     ) {
-      const allowed = await checkRateLimit(
-        env,
-        request,
-        "reset-password",
-        5
-      );
+      const allowed =
+        await checkRateLimit(
+          env,
+          request,
+          "reset-password",
+          5
+        );
 
       if (!allowed) {
         return json(
@@ -581,7 +724,8 @@ export default {
       }
 
       const token =
-        typeof body.token === "string" && body.token.trim()
+        typeof body.token === "string" &&
+        body.token.trim()
           ? body.token.trim()
           : url.searchParams.get("token");
 
@@ -590,7 +734,10 @@ export default {
           ? body.password
           : "";
 
-      if (!token || !/^[a-fA-F0-9]{64}$/.test(token)) {
+      if (
+        !token ||
+        !/^[a-fA-F0-9]{64}$/.test(token)
+      ) {
         return json(
           {
             success: false,
@@ -600,7 +747,10 @@ export default {
         );
       }
 
-      if (password.length < 8 || password.length > 128) {
+      if (
+        password.length < 8 ||
+        password.length > 128
+      ) {
         return json(
           {
             success: false,
@@ -611,31 +761,34 @@ export default {
         );
       }
 
-      const tokenHash = await hashToken(token);
+      const tokenHash =
+        await hashToken(token);
 
-      const reset = await env.DB.prepare(`
-        SELECT
-          password_resets.*,
-          users.email
-        FROM password_resets
-        JOIN users
-          ON users.id = password_resets.user_id
-        WHERE password_resets.token_hash = ?
-      `)
-        .bind(tokenHash)
-        .first();
+      const reset =
+        await env.DB.prepare(`
+          SELECT
+            password_resets.*,
+            users.email
+          FROM password_resets
+          JOIN users
+            ON users.id = password_resets.user_id
+          WHERE password_resets.token_hash = ?
+        `)
+          .bind(tokenHash)
+          .first();
 
       if (!reset) {
         return json(
           {
             success: false,
-            error: "Недействительный или истёкший токен"
+            error:
+              "Недействительный или истёкший токен"
           },
           400
         );
       }
 
-      if (reset.used) {
+      if (Number(reset.used) === 1) {
         return json(
           {
             success: false,
@@ -645,9 +798,10 @@ export default {
         );
       }
 
-      const expiresAt = new Date(
-        reset.expires_at
-      ).getTime();
+      const expiresAt =
+        new Date(
+          reset.expires_at
+        ).getTime();
 
       if (
         Number.isNaN(expiresAt) ||
@@ -656,58 +810,71 @@ export default {
         return json(
           {
             success: false,
-            error: "Срок действия токена истёк"
+            error:
+              "Срок действия токена истёк"
           },
           400
         );
       }
 
       /*
-       * Сохраняем пароль
-       * в том же формате, который используется
-       * при регистрации.
+       * Хешируем новый пароль.
        */
 
       const passwordHash =
         await hashToken(password);
 
-      await env.DB.prepare(`
-        UPDATE users
-        SET password_hash = ?
-        WHERE id = ?
-      `)
-        .bind(
-          passwordHash,
-          reset.user_id
-        )
-        .run();
+      try {
+        await env.DB.prepare(`
+          UPDATE users
+          SET password_hash = ?
+          WHERE id = ?
+        `)
+          .bind(
+            passwordHash,
+            reset.user_id
+          )
+          .run();
 
-      /*
-       * Помечаем токен использованным.
-       */
+        await env.DB.prepare(`
+          UPDATE password_resets
+          SET used = 1
+          WHERE token_hash = ?
+        `)
+          .bind(tokenHash)
+          .run();
 
-      await env.DB.prepare(`
-        UPDATE password_resets
-        SET used = 1
-        WHERE token_hash = ?
-      `)
-        .bind(tokenHash)
-        .run();
+        /*
+         * Завершаем все старые сессии.
+         */
 
-      /*
-       * Удаляем существующие сессии пользователя.
-       */
+        await env.DB.prepare(`
+          DELETE FROM sessions
+          WHERE user_id = ?
+        `)
+          .bind(reset.user_id)
+          .run();
 
-      await env.DB.prepare(`
-        DELETE FROM sessions
-        WHERE user_id = ?
-      `)
-        .bind(reset.user_id)
-        .run();
+      } catch (error) {
+        console.error(
+          "PASSWORD RESET DB ERROR",
+          error
+        );
+
+        return json(
+          {
+            success: false,
+            error:
+              "Не удалось изменить пароль"
+          },
+          500
+        );
+      }
 
       return json({
         success: true,
-        message: "Пароль успешно изменён"
+        message:
+          "Пароль успешно изменён"
       });
     }
 
@@ -719,7 +886,11 @@ export default {
       url.pathname === "/api/admin/users" &&
       request.method === "GET"
     ) {
-      const admin = await getAdminUser(env, request);
+      const admin =
+        await getAdminUser(
+          env,
+          request
+        );
 
       if (!admin) {
         return json(
@@ -731,17 +902,19 @@ export default {
         );
       }
 
-      const result = await env.DB.prepare(`
-        SELECT
-          id,
-          email,
-          created_at,
-          subscription_status,
-          subscription_plan,
-          subscription_expires_at
-        FROM users
-        ORDER BY id DESC
-      `).all();
+      const result =
+        await env.DB.prepare(`
+          SELECT
+            id,
+            email,
+            created_at,
+            subscription_status,
+            subscription_plan,
+            subscription_expires_at
+          FROM users
+          ORDER BY id DESC
+        `)
+          .all();
 
       return json({
         success: true,
@@ -757,10 +930,11 @@ export default {
       url.pathname === "/api/logout" &&
       request.method === "POST"
     ) {
-      const sessionId = getCookie(
-        request,
-        "session"
-      );
+      const sessionId =
+        getCookie(
+          request,
+          "session"
+        );
 
       if (sessionId) {
         await env.DB.prepare(`
@@ -773,6 +947,7 @@ export default {
 
       return new Response(null, {
         status: 204,
+
         headers: {
           "Set-Cookie":
             "session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0"
@@ -788,10 +963,11 @@ export default {
       url.pathname === "/api/me" &&
       request.method === "GET"
     ) {
-      const sessionId = getCookie(
-        request,
-        "session"
-      );
+      const sessionId =
+        getCookie(
+          request,
+          "session"
+        );
 
       if (!sessionId) {
         return json({
@@ -800,19 +976,20 @@ export default {
         });
       }
 
-      const user = await env.DB.prepare(`
-        SELECT
-          users.id,
-          users.email,
-          users.created_at
-        FROM sessions
-        JOIN users
-          ON users.id = sessions.user_id
-        WHERE sessions.id = ?
-          AND sessions.expires_at > datetime('now')
-      `)
-        .bind(sessionId)
-        .first();
+      const user =
+        await env.DB.prepare(`
+          SELECT
+            users.id,
+            users.email,
+            users.created_at
+          FROM sessions
+          JOIN users
+            ON users.id = sessions.user_id
+          WHERE sessions.id = ?
+            AND sessions.expires_at > datetime('now')
+        `)
+          .bind(sessionId)
+          .first();
 
       if (!user) {
         return json({
@@ -835,18 +1012,20 @@ export default {
       url.pathname === "/api/login" &&
       request.method === "POST"
     ) {
-      const allowed = await checkRateLimit(
-        env,
-        request,
-        "login",
-        10
-      );
+      const allowed =
+        await checkRateLimit(
+          env,
+          request,
+          "login",
+          10
+        );
 
       if (!allowed) {
         return json(
           {
             success: false,
-            error: "Слишком много попыток входа"
+            error:
+              "Слишком много попыток входа"
           },
           429
         );
@@ -876,11 +1055,15 @@ export default {
           ? body.password
           : "";
 
-      if (!email || !email.includes("@")) {
+      if (
+        !email ||
+        !email.includes("@")
+      ) {
         return json(
           {
             success: false,
-            error: "Введите корректный email"
+            error:
+              "Введите корректный email"
           },
           400
         );
@@ -896,19 +1079,21 @@ export default {
         );
       }
 
-      const user = await env.DB.prepare(`
-        SELECT *
-        FROM users
-        WHERE email = ?
-      `)
-        .bind(email)
-        .first();
+      const user =
+        await env.DB.prepare(`
+          SELECT *
+          FROM users
+          WHERE email = ?
+        `)
+          .bind(email)
+          .first();
 
       if (!user) {
         return json(
           {
             success: false,
-            error: "Неверный email или пароль"
+            error:
+              "Неверный email или пароль"
           },
           401
         );
@@ -918,22 +1103,29 @@ export default {
         await hashToken(password);
 
       if (
-        passwordHash !== user.password_hash
+        passwordHash !==
+        user.password_hash
       ) {
         return json(
           {
             success: false,
-            error: "Неверный email или пароль"
+            error:
+              "Неверный email или пароль"
           },
           401
         );
       }
 
-      const sessionId = Date.now();
-      const sessionToken = generateToken();
-      const tokenHash = await hashToken(
-        sessionToken
-      );
+      const sessionId =
+        Date.now();
+
+      const sessionToken =
+        generateToken();
+
+      const tokenHash =
+        await hashToken(
+          sessionToken
+        );
 
       await env.DB.prepare(`
         INSERT INTO sessions (
@@ -966,9 +1158,14 @@ export default {
         }),
         {
           status: 200,
+
           headers: {
-            "Content-Type": "application/json",
-            "Cache-Control": "no-store",
+            "Content-Type":
+              "application/json; charset=UTF-8",
+
+            "Cache-Control":
+              "no-store",
+
             "Set-Cookie":
               `session=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`
           }
@@ -984,18 +1181,20 @@ export default {
       url.pathname === "/api/register" &&
       request.method === "POST"
     ) {
-      const allowed = await checkRateLimit(
-        env,
-        request,
-        "register",
-        5
-      );
+      const allowed =
+        await checkRateLimit(
+          env,
+          request,
+          "register",
+          5
+        );
 
       if (!allowed) {
         return json(
           {
             success: false,
-            error: "Слишком много запросов"
+            error:
+              "Слишком много запросов"
           },
           429
         );
@@ -1004,12 +1203,14 @@ export default {
       let body;
 
       try {
-        body = await request.json();
+        body =
+          await request.json();
       } catch {
         return json(
           {
             success: false,
-            error: "Некорректный JSON"
+            error:
+              "Некорректный JSON"
           },
           400
         );
@@ -1025,11 +1226,15 @@ export default {
           ? body.password
           : "";
 
-      if (!email || !email.includes("@")) {
+      if (
+        !email ||
+        !email.includes("@")
+      ) {
         return json(
           {
             success: false,
-            error: "Введите корректный email"
+            error:
+              "Введите корректный email"
           },
           400
         );
@@ -1062,7 +1267,8 @@ export default {
         return json(
           {
             success: false,
-            error: "Пользователь уже существует"
+            error:
+              "Пользователь уже существует"
           },
           409
         );
@@ -1091,7 +1297,8 @@ export default {
       return json({
         success: true,
         user: {
-          id: result.meta.last_row_id,
+          id:
+            result.meta.last_row_id,
           email
         }
       });
@@ -1105,18 +1312,20 @@ export default {
       url.pathname === "/api/early-access" &&
       request.method === "POST"
     ) {
-      const allowed = await checkRateLimit(
-        env,
-        request,
-        "early-access",
-        10
-      );
+      const allowed =
+        await checkRateLimit(
+          env,
+          request,
+          "early-access",
+          10
+        );
 
       if (!allowed) {
         return json(
           {
             success: false,
-            error: "Слишком много запросов"
+            error:
+              "Слишком много запросов"
           },
           429
         );
@@ -1125,12 +1334,14 @@ export default {
       let body;
 
       try {
-        body = await request.json();
+        body =
+          await request.json();
       } catch {
         return json(
           {
             success: false,
-            error: "Некорректный JSON"
+            error:
+              "Некорректный JSON"
           },
           400
         );
@@ -1141,11 +1352,15 @@ export default {
           ? body.email.trim().toLowerCase()
           : "";
 
-      if (!email || !email.includes("@")) {
+      if (
+        !email ||
+        !email.includes("@")
+      ) {
         return json(
           {
             success: false,
-            error: "Введите корректный email"
+            error:
+              "Введите корректный email"
           },
           400
         );
@@ -1168,11 +1383,18 @@ export default {
           message:
             "Вы успешно записались в ранний доступ"
         });
+
       } catch (error) {
+        console.error(
+          "EARLY ACCESS ERROR",
+          error
+        );
+
         return json(
           {
             success: false,
-            error: "Этот email уже зарегистрирован"
+            error:
+              "Этот email уже зарегистрирован"
           },
           409
         );
@@ -1180,14 +1402,26 @@ export default {
     }
 
     /*
-     * PROTECT ACCOUNT PAGE
+     * RESET PASSWORD PAGE
+     *
+     * /reset-password
+     *
+     * Если старый reset-password.html
+     * тоже используется, оставляем его доступным.
      */
 
-    if (url.pathname === "/account.html") {
-      const sessionId = getCookie(
-        request,
-        "session"
-      );
+    /*
+     * ACCOUNT PAGE PROTECTION
+     */
+
+    if (
+      url.pathname === "/account.html"
+    ) {
+      const sessionId =
+        getCookie(
+          request,
+          "session"
+        );
 
       if (!sessionId) {
         return Response.redirect(
@@ -1218,6 +1452,26 @@ export default {
      * STATIC ASSETS
      */
 
-    return env.ASSETS.fetch(request);
+    try {
+      return await env.ASSETS.fetch(
+        request
+      );
+    } catch (error) {
+      console.error(
+        "ASSETS FETCH ERROR",
+        error
+      );
+
+      return new Response(
+        "NexoraVPN Worker error",
+        {
+          status: 500,
+          headers: {
+            "Content-Type":
+              "text/plain; charset=UTF-8"
+          }
+        }
+      );
+    }
   }
 };
