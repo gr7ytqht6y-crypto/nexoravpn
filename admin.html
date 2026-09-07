@@ -3,558 +3,945 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>NexoraVPN — Admin</title>
+  <title>NexoraVPN — Admin Control Center</title>
 
   <style>
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --blue: #1769ff;
+      --blue-dark: #0f56d9;
+      --blue-soft: #edf4ff;
+      --green: #2fce2c;
+      --green-soft: #eafbea;
+
+      --text: #101828;
+      --muted: #667085;
+      --border: #e7ebf2;
+      --surface: #ffffff;
+      --background: #f6f8fc;
+
+      --shadow-sm: 0 4px 16px rgba(16, 24, 40, .05);
+      --shadow-md: 0 12px 35px rgba(16, 24, 40, .08);
+      --shadow-lg: 0 24px 60px rgba(16, 24, 40, .10);
+
+      --radius: 20px;
     }
 
     body {
-      margin: 0;
       font-family:
         -apple-system,
         BlinkMacSystemFont,
-        "Segoe UI",
+        "SF Pro Display",
+        "SF Pro Text",
+        Inter,
         Arial,
         sans-serif;
 
       background:
         radial-gradient(
-          circle at top right,
-          rgba(229, 9, 20, 0.13),
-          transparent 35%
+          circle at 8% 0%,
+          rgba(23, 105, 255, .08),
+          transparent 28%
         ),
-        #070707;
+        radial-gradient(
+          circle at 92% 8%,
+          rgba(47, 206, 44, .06),
+          transparent 25%
+        ),
+        var(--background);
 
-      color: #fff;
+      color: var(--text);
       min-height: 100vh;
     }
 
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    /* =========================
+       HEADER
+    ========================= */
+
     header {
-      height: 72px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+
+      margin: 18px auto 0;
+      width: min(1180px, calc(100% - 32px));
+
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
+      border: 1px solid rgba(231,235,242,.9);
+      border-radius: 18px;
+
+      box-shadow: var(--shadow-sm);
+
+      height: 68px;
+
       display: flex;
       align-items: center;
       justify-content: space-between;
 
-      padding: 0 28px;
-
-      border-bottom: 1px solid #202020;
-      background: rgba(7, 7, 7, 0.88);
-
-      backdrop-filter: blur(15px);
-
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      padding: 0 18px 0 22px;
     }
 
-    .logo {
-      font-size: 22px;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
       font-weight: 800;
-      letter-spacing: -0.5px;
+      font-size: 19px;
+      letter-spacing: -.4px;
     }
 
-    .logo span {
-      color: #e50914;
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+
+      border-radius: 11px;
+
+      background: linear-gradient(
+        145deg,
+        #1769ff,
+        #0f56d9
+      );
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      color: white;
+      font-size: 15px;
+
+      box-shadow:
+        0 7px 18px rgba(23,105,255,.25);
+    }
+
+    .brand span {
+      color: var(--blue);
     }
 
     .admin-badge {
-      padding: 7px 12px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 8px 12px;
+
       border-radius: 999px;
 
-      background: rgba(229, 9, 20, 0.12);
-      border: 1px solid rgba(229, 9, 20, 0.35);
-
-      color: #ff4d57;
+      background: var(--blue-soft);
+      color: var(--blue);
 
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 750;
     }
 
+    .admin-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+
+      box-shadow: 0 0 0 4px rgba(47,206,44,.10);
+    }
+
+    /* =========================
+       MAIN
+    ========================= */
+
     main {
-      max-width: 1200px;
+      width: min(1180px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 45px 22px 60px;
+
+      padding: 62px 0 70px;
     }
 
     .hero {
+      margin-bottom: 30px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+
+      padding: 7px 11px;
+
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+
+      color: var(--muted);
+
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+
+      box-shadow: var(--shadow-sm);
+    }
+
+    .eyebrow-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    h1 {
+      margin-top: 17px;
+
+      font-size: clamp(38px, 5vw, 58px);
+      line-height: 1.02;
+
+      letter-spacing: -2.5px;
+      font-weight: 850;
+    }
+
+    h1 span {
+      background: linear-gradient(
+        110deg,
+        var(--blue),
+        #3b82f6
+      );
+
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-description {
+      margin-top: 15px;
+
+      max-width: 650px;
+
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    /* =========================
+       STATS
+    ========================= */
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+
       margin-bottom: 28px;
     }
 
-    .hero h1 {
-      margin: 0;
-
-      font-size: clamp(30px, 6vw, 46px);
-      letter-spacing: -1.5px;
-    }
-
-    .hero p {
-      margin: 10px 0 0;
-
-      color: #888;
-      font-size: 15px;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
     .stat-card {
-      padding: 22px;
+      position: relative;
+      overflow: hidden;
 
-      background:
-        linear-gradient(
-          145deg,
-          #111,
-          #0b0b0b
-        );
+      background: var(--surface);
 
-      border: 1px solid #202020;
-      border-radius: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
 
-      box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.25);
+      padding: 23px;
+
+      box-shadow: var(--shadow-sm);
+
+      transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-card::after {
+      content: "";
+
+      position: absolute;
+      right: -35px;
+      bottom: -45px;
+
+      width: 130px;
+      height: 130px;
+
+      border-radius: 50%;
+
+      background: rgba(23,105,255,.045);
+    }
+
+    .stat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stat-icon {
+      width: 43px;
+      height: 43px;
+
+      border-radius: 13px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: var(--blue-soft);
+      color: var(--blue);
+
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .stat-card.green .stat-icon {
+      background: var(--green-soft);
+      color: #1e9f1b;
     }
 
     .stat-label {
-      color: #777;
+      color: var(--muted);
       font-size: 13px;
-      margin-bottom: 9px;
+      font-weight: 650;
     }
 
-    .stat-value {
-      font-size: 30px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+    .stat-number {
+      margin-top: 17px;
+
+      font-size: 34px;
+      line-height: 1;
+
+      letter-spacing: -1.5px;
+      font-weight: 820;
+    }
+
+    .stat-footer {
+      margin-top: 9px;
+
+      color: #98a2b3;
+      font-size: 12px;
+    }
+
+    /* =========================
+       SYSTEM
+    ========================= */
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      margin: 34px 0 14px;
+    }
+
+    .section-title h2 {
+      font-size: 17px;
+      letter-spacing: -.4px;
+    }
+
+    .section-title span {
+      color: #98a2b3;
+      font-size: 12px;
     }
 
     .system-grid {
       display: grid;
-      grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 25px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+
+      margin-bottom: 30px;
     }
 
     .system-card {
+      background: white;
+
+      border: 1px solid var(--border);
+      border-radius: 17px;
+
+      padding: 17px 18px;
+
       display: flex;
       align-items: center;
-      gap: 11px;
+      gap: 13px;
 
-      padding: 15px 17px;
-
-      background: #0d0d0d;
-      border: 1px solid #202020;
-      border-radius: 14px;
+      box-shadow: var(--shadow-sm);
     }
 
-    .system-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      flex-shrink: 0;
+    .system-icon {
+      width: 42px;
+      height: 42px;
+
+      border-radius: 12px;
+
+      background: var(--green-soft);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      color: #1c9f19;
+      font-size: 17px;
     }
 
-    .online {
-      background: #4ade80;
-      box-shadow:
-        0 0 10px rgba(74, 222, 128, 0.5);
-    }
-
-    .waiting {
-      background: #facc15;
-      box-shadow:
-        0 0 10px rgba(250, 204, 21, 0.35);
+    .system-info {
+      flex: 1;
     }
 
     .system-name {
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 750;
     }
 
     .system-status {
-      margin-left: auto;
-      color: #666;
+      margin-top: 3px;
+
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      color: #667085;
       font-size: 11px;
     }
 
-    .panel {
-      background: #0c0c0c;
-      border: 1px solid #202020;
-      border-radius: 20px;
-      overflow: hidden;
+    .status-dot {
+      width: 7px;
+      height: 7px;
+
+      border-radius: 50%;
+      background: var(--green);
 
       box-shadow:
-        0 20px 50px rgba(0, 0, 0, 0.3);
+        0 0 0 4px rgba(47,206,44,.09);
+    }
 
-      margin-bottom: 22px;
+    .status-dot.waiting {
+      background: #f59e0b;
+      box-shadow: 0 0 0 4px rgba(245,158,11,.09);
+    }
+
+    /* =========================
+       USERS PANEL
+    ========================= */
+
+    .panel {
+      background: white;
+
+      border: 1px solid var(--border);
+      border-radius: 22px;
+
+      box-shadow: var(--shadow-sm);
+
+      overflow: hidden;
     }
 
     .panel-header {
+      padding: 21px 22px;
+
+      border-bottom: 1px solid var(--border);
+
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+
       gap: 15px;
-
-      padding: 20px 24px;
-
-      border-bottom: 1px solid #202020;
     }
 
     .panel-title {
-      font-size: 18px;
-      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 11px;
     }
 
-    .panel-subtitle {
-      margin-top: 4px;
-      color: #666;
-      font-size: 12px;
+    .panel-title-icon {
+      width: 38px;
+      height: 38px;
+
+      border-radius: 11px;
+
+      background: var(--blue-soft);
+      color: var(--blue);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 16px;
     }
 
-    .actions {
+    .panel-title h2 {
+      font-size: 16px;
+      letter-spacing: -.3px;
+    }
+
+    .panel-title p {
+      margin-top: 3px;
+
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .panel-actions {
       display: flex;
       align-items: center;
       gap: 9px;
     }
 
-    .search {
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+
+      color: #98a2b3;
+      font-size: 13px;
+    }
+
+    #searchInput {
       width: 230px;
 
-      padding: 10px 13px;
+      height: 39px;
 
-      border-radius: 10px;
-      border: 1px solid #292929;
+      border: 1px solid var(--border);
+      border-radius: 11px;
 
-      background: #151515;
-      color: #fff;
+      background: #fafbfc;
+
+      padding: 0 13px 0 34px;
 
       outline: none;
-      font-size: 13px;
+
+      color: var(--text);
+      font-size: 12px;
+
+      transition: .2s ease;
     }
 
-    .search:focus {
-      border-color: #444;
+    #searchInput:focus {
+      border-color: rgba(23,105,255,.45);
+
+      background: white;
+
+      box-shadow:
+        0 0 0 4px rgba(23,105,255,.07);
     }
 
-    .search::placeholder {
-      color: #666;
+    .refresh-btn {
+      height: 39px;
+
+      padding: 0 14px;
+
+      border: 1px solid var(--border);
+      border-radius: 11px;
+
+      background: white;
+
+      color: #475467;
+
+      font-size: 12px;
+      font-weight: 700;
+
+      transition: .2s ease;
     }
 
-    .refresh {
-      border: 1px solid #292929;
-      background: #151515;
-      color: #fff;
-
-      padding: 10px 14px;
-
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 13px;
+    .refresh-btn:hover {
+      border-color: #cfd6e1;
+      background: #f8fafc;
     }
 
-    .refresh:hover {
-      border-color: #e50914;
-    }
-
-    .table-wrapper {
+    .table-wrap {
       overflow-x: auto;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 760px;
+
+      min-width: 720px;
     }
 
     th {
+      background: #fafbfc;
+
+      color: #98a2b3;
+
+      font-size: 10px;
+      font-weight: 800;
+
+      letter-spacing: .6px;
+      text-transform: uppercase;
+
+      padding: 13px 18px;
+
       text-align: left;
 
-      padding: 15px 20px;
-
-      background: #101010;
-      color: #777;
-
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
+      border-bottom: 1px solid var(--border);
     }
 
     td {
-      padding: 18px 20px;
+      padding: 16px 18px;
 
-      border-top: 1px solid #191919;
+      border-bottom: 1px solid #f0f2f5;
 
-      color: #ddd;
-      font-size: 14px;
+      color: #344054;
+      font-size: 12px;
     }
 
     tbody tr {
-      transition: background 0.2s;
+      transition: background .15s ease;
     }
 
     tbody tr:hover {
-      background: #111;
+      background: #fbfdff;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
     }
 
     .user-id {
-      color: #666;
-      font-weight: 600;
+      color: #98a2b3;
+      font-weight: 650;
     }
 
-    .email {
-      color: #fff;
-      font-weight: 600;
-    }
-
-    .status {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-
-      padding: 6px 10px;
-
-      border-radius: 999px;
-
-      font-size: 12px;
+    .user-email {
+      color: var(--text);
       font-weight: 700;
     }
 
-    .status::before {
-      content: "";
+    .badge {
+      display: inline-flex;
+      align-items: center;
 
-      width: 6px;
-      height: 6px;
+      padding: 5px 9px;
 
-      border-radius: 50%;
-      background: currentColor;
+      border-radius: 999px;
+
+      font-size: 10px;
+      font-weight: 750;
     }
 
-    .status.active {
-      color: #4ade80;
-      background:
-        rgba(74, 222, 128, 0.1);
+    .badge.active {
+      background: var(--green-soft);
+      color: #198b17;
     }
 
-    .status.inactive {
-      color: #888;
-      background:
-        rgba(255, 255, 255, 0.06);
+    .badge.inactive {
+      background: #f2f4f7;
+      color: #667085;
     }
 
-    .empty {
+    .plan-badge {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .expires {
+      color: #667085;
+    }
+
+    .empty-state {
+      padding: 48px 20px;
+
       text-align: center;
-      padding: 45px;
-      color: #666;
-    }
 
-    .error {
-      color: #ff4d57;
-      text-align: center;
-      padding: 35px;
+      color: #98a2b3;
+
+      font-size: 13px;
     }
 
     /* =========================
-       ВОССТАНОВЛЕНИЕ ПАРОЛЯ
-       ========================= */
+       RESET PANEL
+    ========================= */
 
     .reset-panel {
-      padding: 24px;
+      margin-top: 25px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(23,105,255,.055),
+          rgba(47,206,44,.045)
+        );
+
+      border: 1px solid rgba(23,105,255,.10);
+
+      border-radius: 22px;
+
+      padding: 23px;
     }
 
-    .reset-description {
-      margin: 7px 0 18px;
+    .reset-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 13px;
+    }
 
-      color: #777;
-      font-size: 13px;
+    .reset-icon {
+      width: 43px;
+      height: 43px;
+
+      flex: 0 0 auto;
+
+      border-radius: 13px;
+
+      background: white;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      color: var(--blue);
+
+      box-shadow: var(--shadow-sm);
+    }
+
+    .reset-header h2 {
+      font-size: 16px;
+      letter-spacing: -.3px;
+    }
+
+    .reset-header p {
+      margin-top: 5px;
+
+      color: var(--muted);
+      font-size: 12px;
       line-height: 1.5;
     }
 
     .reset-form {
+      margin-top: 18px;
+
       display: flex;
       gap: 10px;
     }
 
-    .reset-input {
+    #resetEmail {
       flex: 1;
 
-      min-width: 0;
+      height: 46px;
 
-      padding: 12px 14px;
+      border: 1px solid #dce2eb;
+      border-radius: 12px;
 
-      border-radius: 10px;
-      border: 1px solid #292929;
+      background: white;
 
-      background: #151515;
-      color: #fff;
+      padding: 0 14px;
 
       outline: none;
-      font-size: 14px;
-    }
-
-    .reset-input:focus {
-      border-color: #e50914;
-    }
-
-    .reset-input::placeholder {
-      color: #666;
-    }
-
-    .reset-button {
-      border: 1px solid #e50914;
-
-      background: #e50914;
-      color: #fff;
-
-      padding: 12px 17px;
-
-      border-radius: 10px;
-
-      cursor: pointer;
 
       font-size: 13px;
-      font-weight: 700;
 
-      white-space: nowrap;
+      color: var(--text);
     }
 
-    .reset-button:hover {
-      background: #c70812;
+    #resetEmail:focus {
+      border-color: rgba(23,105,255,.5);
+
+      box-shadow:
+        0 0 0 4px rgba(23,105,255,.07);
     }
 
-    .reset-button:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
+    #resetButton {
+      height: 46px;
 
-    .reset-result {
-      margin-top: 15px;
+      padding: 0 19px;
 
-      padding: 13px;
+      border: 0;
+      border-radius: 12px;
 
-      border-radius: 10px;
+      background: linear-gradient(
+        135deg,
+        #2fce2c,
+        #25b923
+      );
 
-      background: #111;
-      border: 1px solid #202020;
+      color: white;
 
-      font-size: 13px;
-      line-height: 1.5;
-
-      display: none;
-    }
-
-    .reset-result.success {
-      display: block;
-      color: #4ade80;
-    }
-
-    .reset-result.error-result {
-      display: block;
-      color: #ff4d57;
-    }
-
-    .reset-link {
-      display: block;
-
-      margin-top: 8px;
-
-      color: #fff;
-
-      word-break: break-all;
-
-      text-decoration: underline;
-    }
-
-    .bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      margin-top: 22px;
-    }
-
-    .back {
-      color: #888;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    .back:hover {
-      color: #fff;
-    }
-
-    .secure {
-      color: #555;
       font-size: 12px;
+      font-weight: 800;
+
+      box-shadow:
+        0 8px 18px rgba(47,206,44,.20);
+
+      transition:
+        transform .2s ease,
+        box-shadow .2s ease;
     }
+
+    #resetButton:hover {
+      transform: translateY(-1px);
+
+      box-shadow:
+        0 11px 23px rgba(47,206,44,.25);
+    }
+
+    #resetButton:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #resetResult {
+      margin-top: 13px;
+
+      font-size: 12px;
+      line-height: 1.6;
+
+      word-break: break-word;
+    }
+
+    #resetResult a {
+      color: var(--blue);
+      font-weight: 700;
+    }
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    footer {
+      width: min(1180px, calc(100% - 32px));
+
+      margin: 0 auto 30px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      color: #98a2b3;
+
+      font-size: 11px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+
+      color: #667085;
+      text-decoration: none;
+
+      font-weight: 700;
+    }
+
+    .back-link:hover {
+      color: var(--blue);
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
 
     @media (max-width: 800px) {
-
       header {
-        padding: 0 18px;
+        margin-top: 10px;
+        width: calc(100% - 20px);
       }
 
       main {
-        padding: 32px 14px 45px;
+        width: calc(100% - 20px);
+        padding-top: 42px;
       }
 
-      .stats {
-        grid-template-columns: 1fr;
+      footer {
+        width: calc(100% - 20px);
       }
 
+      .stats-grid,
       .system-grid {
         grid-template-columns: 1fr;
+      }
+
+      h1 {
+        letter-spacing: -1.8px;
       }
 
       .panel-header {
         align-items: stretch;
         flex-direction: column;
-        padding: 18px;
       }
 
-      .actions {
+      .panel-actions {
         width: 100%;
       }
 
-      .search {
+      .search-wrap {
         flex: 1;
-        width: auto;
       }
 
-      .hero h1 {
-        font-size: 34px;
+      #searchInput {
+        width: 100%;
+      }
+
+      .refresh-btn {
+        flex-shrink: 0;
       }
 
       .reset-form {
         flex-direction: column;
       }
 
-      .reset-button {
+      #resetButton {
         width: 100%;
-      }
-
-      .bottom {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
       }
     }
 
-    @media (max-width: 450px) {
-
-      .actions {
-        flex-direction: column;
+    @media (max-width: 500px) {
+      .brand {
+        font-size: 17px;
       }
 
-      .search,
-      .refresh {
-        width: 100%;
+      .admin-badge {
+        padding: 7px 9px;
+        font-size: 10px;
+      }
+
+      .brand-mark {
+        width: 32px;
+        height: 32px;
+      }
+
+      .hero-description {
+        font-size: 14px;
+      }
+
+      .stat-card {
+        padding: 20px;
+      }
+
+      .panel {
+        border-radius: 17px;
+      }
+
+      .panel-header {
+        padding: 18px;
+      }
+
+      .reset-panel {
+        padding: 19px;
+        border-radius: 17px;
+      }
+
+      footer {
+        flex-direction: column;
+        gap: 10px;
       }
     }
   </style>
@@ -562,285 +949,387 @@
 
 <body>
 
-<header>
+  <!-- HEADER -->
 
-  <div class="logo">
-    Nexora<span>VPN</span>
-  </div>
-
-  <div class="admin-badge">
-    ADMIN
-  </div>
-
-</header>
-
-<main>
-
-  <section class="hero">
-
-    <h1>
-      Админ-панель
-    </h1>
-
-    <p>
-      Управление и мониторинг NexoraVPN
-    </p>
-
-  </section>
-
-  <section class="stats">
-
-    <div class="stat-card">
-
-      <div class="stat-label">
-        Всего пользователей
-      </div>
-
-      <div
-        class="stat-value"
-        id="totalUsers"
-      >
-        —
-      </div>
-
+  <header>
+    <div class="brand">
+      <div class="brand-mark">N</div>
+      Nexora<span>VPN</span>
     </div>
 
-    <div class="stat-card">
-
-      <div class="stat-label">
-        Активные подписки
-      </div>
-
-      <div
-        class="stat-value"
-        id="activeUsers"
-      >
-        —
-      </div>
-
+    <div class="admin-badge">
+      <span class="admin-dot"></span>
+      Admin
     </div>
+  </header>
 
-    <div class="stat-card">
 
-      <div class="stat-label">
-        Регистрации сегодня
+  <main>
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+      <div class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        Control Center
       </div>
 
-      <div
-        class="stat-value"
-        id="todayUsers"
-      >
-        —
-      </div>
+      <h1>
+        Админ<span>-панель</span>
+      </h1>
 
-    </div>
+      <p class="hero-description">
+        Управление пользователями, подписками и состоянием
+        инфраструктуры NexoraVPN в одном месте.
+      </p>
 
-  </section>
+    </section>
 
-  <section class="system-grid">
 
-    <div class="system-card">
+    <!-- STATS -->
 
-      <div class="system-dot online"></div>
+    <section class="stats-grid">
 
-      <div class="system-name">
-        API
-      </div>
+      <div class="stat-card">
 
-      <div class="system-status">
-        Online
-      </div>
+        <div class="stat-top">
+          <div class="stat-label">
+            Всего пользователей
+          </div>
 
-    </div>
-
-    <div class="system-card">
-
-      <div class="system-dot online"></div>
-
-      <div class="system-name">
-        Database
-      </div>
-
-      <div class="system-status">
-        Online
-      </div>
-
-    </div>
-
-    <div class="system-card">
-
-      <div class="system-dot waiting"></div>
-
-      <div class="system-name">
-        VPN Server
-      </div>
-
-      <div class="system-status">
-        Waiting
-      </div>
-
-    </div>
-
-  </section>
-
-  <section class="panel">
-
-    <div class="panel-header">
-
-      <div>
-
-        <div class="panel-title">
-          Пользователи
+          <div class="stat-icon">
+            ◉
+          </div>
         </div>
 
         <div
-          class="panel-subtitle"
-          id="userCount"
+          class="stat-number"
+          id="totalUsers"
         >
-          Загрузка...
+          —
+        </div>
+
+        <div class="stat-footer">
+          Зарегистрированные аккаунты
         </div>
 
       </div>
 
-      <div class="actions">
 
-        <input
-          id="search"
-          class="search"
-          type="search"
-          placeholder="Поиск по email..."
-        >
+      <div class="stat-card green">
 
-        <button
-          class="refresh"
-          onclick="loadUsers()"
+        <div class="stat-top">
+          <div class="stat-label">
+            Активные подписки
+          </div>
+
+          <div class="stat-icon">
+            ✓
+          </div>
+        </div>
+
+        <div
+          class="stat-number"
+          id="activeUsers"
         >
-          ↻ Обновить
-        </button>
+          —
+        </div>
+
+        <div class="stat-footer">
+          Пользователи с активным доступом
+        </div>
 
       </div>
 
+
+      <div class="stat-card">
+
+        <div class="stat-top">
+          <div class="stat-label">
+            Регистрации сегодня
+          </div>
+
+          <div class="stat-icon">
+            +
+          </div>
+        </div>
+
+        <div
+          class="stat-number"
+          id="todayUsers"
+        >
+          —
+        </div>
+
+        <div class="stat-footer">
+          Новые пользователи за день
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SYSTEM -->
+
+    <div class="section-title">
+      <h2>Состояние системы</h2>
+      <span>Live status</span>
     </div>
 
-    <div class="table-wrapper">
 
-      <table>
+    <section class="system-grid">
 
-        <thead>
+      <div class="system-card">
 
-          <tr>
+        <div class="system-icon">
+          ↗
+        </div>
 
-            <th>ID</th>
+        <div class="system-info">
 
-            <th>Email</th>
+          <div class="system-name">
+            API
+          </div>
 
-            <th>Регистрация</th>
+          <div class="system-status">
+            <span class="status-dot"></span>
+            Online
+          </div>
 
-            <th>Статус</th>
+        </div>
 
-            <th>Тариф</th>
-
-            <th>Истекает</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody id="users"></tbody>
-
-      </table>
-
-    </div>
-
-  </section>
-
-  <!-- ВОССТАНОВЛЕНИЕ ПАРОЛЯ -->
-
-  <section class="panel">
-
-    <div class="reset-panel">
-
-      <div class="panel-title">
-        Восстановление пароля
       </div>
 
-      <div class="reset-description">
-        Введи email зарегистрированного пользователя.
-        Будет создана тестовая ссылка восстановления,
-        действующая 15 минут.
+
+      <div class="system-card">
+
+        <div class="system-icon">
+          ▣
+        </div>
+
+        <div class="system-info">
+
+          <div class="system-name">
+            Database
+          </div>
+
+          <div class="system-status">
+            <span class="status-dot"></span>
+            Online
+          </div>
+
+        </div>
+
       </div>
+
+
+      <div class="system-card">
+
+        <div class="system-icon"
+             style="background:#fff7e8;color:#d88900;">
+          ◌
+        </div>
+
+        <div class="system-info">
+
+          <div class="system-name">
+            VPN Server
+          </div>
+
+          <div class="system-status">
+            <span class="status-dot waiting"></span>
+            Waiting
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- USERS -->
+
+    <section class="panel">
+
+      <div class="panel-header">
+
+        <div class="panel-title">
+
+          <div class="panel-title-icon">
+            ◉
+          </div>
+
+          <div>
+            <h2>Пользователи</h2>
+
+            <p>
+              Управление аккаунтами NexoraVPN
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="panel-actions">
+
+          <div class="search-wrap">
+
+            <span class="search-icon">
+              ⌕
+            </span>
+
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Поиск по email..."
+            >
+
+          </div>
+
+
+          <button
+            class="refresh-btn"
+            onclick="loadUsers()"
+          >
+            ↻ Обновить
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>ID</th>
+              <th>Email</th>
+              <th>Registration</th>
+              <th>Status</th>
+              <th>Plan</th>
+              <th>Expires</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="usersTableBody">
+
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  Загрузка пользователей...
+                </div>
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <!-- RESET PASSWORD -->
+
+    <section class="reset-panel">
+
+      <div class="reset-header">
+
+        <div class="reset-icon">
+          🔐
+        </div>
+
+        <div>
+
+          <h2>
+            Тест восстановления пароля
+          </h2>
+
+          <p>
+            Сгенерируй тестовую ссылку восстановления
+            для выбранного аккаунта.
+          </p>
+
+        </div>
+
+      </div>
+
 
       <div class="reset-form">
 
         <input
-          id="resetEmail"
-          class="reset-input"
           type="email"
-          placeholder="Email пользователя"
-          autocomplete="off"
+          id="resetEmail"
+          placeholder="Введите email пользователя"
         >
 
         <button
           id="resetButton"
-          class="reset-button"
-          onclick="generateResetLink()"
+          onclick="testResetLink()"
         >
-          Создать ссылку
+          Сгенерировать ссылку
         </button>
 
       </div>
 
-      <div
-        id="resetResult"
-        class="reset-result"
-      ></div>
 
-    </div>
+      <div id="resetResult"></div>
 
-  </section>
+    </section>
 
-  <div class="bottom">
+  </main>
+
+
+  <!-- FOOTER -->
+
+  <footer>
 
     <a
-      class="back"
       href="account.html"
+      class="back-link"
     >
-      ← Вернуться в кабинет
+      ← Вернуться в аккаунт
     </a>
 
-    <div class="secure">
+    <div>
       NexoraVPN • Secure Admin
     </div>
 
-  </div>
+  </footer>
 
-</main>
 
-<script>
+  <script>
 
-  let allUsers = [];
+    let allUsers = [];
 
-  async function loadUsers() {
 
-    const tbody =
-      document.getElementById("users");
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
-    tbody.innerHTML =
-      `
-      <tr>
-        <td
-          colspan="6"
-          class="empty"
-        >
-          Загрузка...
-        </td>
-      </tr>
-      `;
 
-    try {
+    async function loadUsers() {
 
-      const response =
-        await fetch(
+      const tbody =
+        document.getElementById("usersTableBody");
+
+      try {
+
+        const response = await fetch(
           "/api/admin/users",
           {
             method: "GET",
@@ -848,365 +1337,398 @@
           }
         );
 
-      const result =
-        await response.json();
-
-      if (!result.success) {
 
         if (response.status === 403) {
-
-          window.location.href =
-            "account.html";
-
+          window.location.href = "account.html";
           return;
-
         }
 
-        throw new Error();
 
-      }
+        const result = await response.json();
 
-      allUsers =
-        result.users || [];
 
-      updateStats(allUsers);
-
-      renderUsers(allUsers);
-
-    } catch (error) {
-
-      document.getElementById(
-        "users"
-      ).innerHTML =
-        `
-        <tr>
-          <td
-            colspan="6"
-            class="error"
-          >
-            Не удалось загрузить пользователей
-          </td>
-        </tr>
-        `;
-
-      document.getElementById(
-        "userCount"
-      ).textContent =
-        "Ошибка загрузки";
-
-    }
-
-  }
-
-  function updateStats(users) {
-
-    const total =
-      users.length;
-
-    const active =
-      users.filter(
-        user =>
-          user.subscription_status === "active"
-      ).length;
-
-    const today =
-      users.filter(user => {
-
-        if (!user.created_at) {
-          return false;
+        if (!response.ok) {
+          throw new Error(
+            result.error ||
+            "Не удалось загрузить пользователей"
+          );
         }
 
-        const date =
-          new Date(user.created_at);
 
-        const now =
-          new Date();
+        allUsers = result.users || [];
 
-        return (
-          date.getFullYear() ===
-            now.getFullYear() &&
 
-          date.getMonth() ===
-            now.getMonth() &&
+        updateStats();
 
-          date.getDate() ===
-            now.getDate()
-        );
+        renderUsers();
 
-      }).length;
+      } catch (error) {
 
-    document.getElementById(
-      "totalUsers"
-    ).textContent =
-      total;
-
-    document.getElementById(
-      "activeUsers"
-    ).textContent =
-      active;
-
-    document.getElementById(
-      "todayUsers"
-    ).textContent =
-      today;
-
-    document.getElementById(
-      "userCount"
-    ).textContent =
-      `${total} пользователей`;
-
-  }
-
-  function renderUsers(users) {
-
-    const tbody =
-      document.getElementById("users");
-
-    if (users.length === 0) {
-
-      tbody.innerHTML =
-        `
-        <tr>
-          <td
-            colspan="6"
-            class="empty"
-          >
-            Пользователи не найдены
-          </td>
-        </tr>
-        `;
-
-      return;
-
-    }
-
-    tbody.innerHTML =
-      users.map(user => {
-
-        const active =
-          user.subscription_status ===
-          "active";
-
-        return `
+        tbody.innerHTML = `
           <tr>
-
-            <td class="user-id">
-              #${user.id}
+            <td colspan="6">
+              <div class="empty-state">
+                ${escapeHtml(error.message)}
+              </div>
             </td>
-
-            <td class="email">
-              ${escapeHtml(user.email)}
-            </td>
-
-            <td>
-              ${escapeHtml(user.created_at)}
-            </td>
-
-            <td>
-
-              <span
-                class="status ${
-                  active
-                    ? "active"
-                    : "inactive"
-                }"
-              >
-
-                ${
-                  active
-                    ? "Активна"
-                    : "Не активна"
-                }
-
-              </span>
-
-            </td>
-
-            <td>
-              ${
-                user.subscription_plan
-                  ? escapeHtml(
-                      user.subscription_plan
-                    )
-                  : "—"
-              }
-            </td>
-
-            <td>
-              ${
-                user.subscription_expires_at
-                  ? escapeHtml(
-                      user.subscription_expires_at
-                    )
-                  : "—"
-              }
-            </td>
-
           </tr>
         `;
 
-      }).join("");
+      }
 
-  }
+    }
 
-  document
-    .getElementById("search")
-    .addEventListener(
-      "input",
-      function () {
 
-        const query =
-          this.value
-            .trim()
-            .toLowerCase();
+    function updateStats() {
 
-        if (!query) {
+      const total =
+        allUsers.length;
 
-          renderUsers(allUsers);
 
-          return;
+      const active =
+        allUsers.filter(user => {
+
+          const status =
+            String(user.status || "").toLowerCase();
+
+          return (
+            status === "active" ||
+            status === "активна" ||
+            status === "active_subscription"
+          );
+
+        }).length;
+
+
+      const today =
+        new Date().toISOString().slice(0, 10);
+
+
+      const registrationsToday =
+        allUsers.filter(user => {
+
+          const date =
+            String(
+              user.created_at ||
+              user.registration ||
+              user.registered_at ||
+              ""
+            );
+
+          return date.slice(0, 10) === today;
+
+        }).length;
+
+
+      document.getElementById("totalUsers").textContent =
+        total;
+
+
+      document.getElementById("activeUsers").textContent =
+        active;
+
+
+      document.getElementById("todayUsers").textContent =
+        registrationsToday;
+
+    }
+
+
+    function renderUsers() {
+
+      const tbody =
+        document.getElementById(
+          "usersTableBody"
+        );
+
+
+      const search =
+        document
+          .getElementById("searchInput")
+          .value
+          .trim()
+          .toLowerCase();
+
+
+      const users =
+        allUsers.filter(user => {
+
+          const email =
+            String(user.email || "")
+              .toLowerCase();
+
+          return email.includes(search);
+
+        });
+
+
+      if (!users.length) {
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                Пользователи не найдены
+              </div>
+            </td>
+          </tr>
+        `;
+
+        return;
+      }
+
+
+      tbody.innerHTML =
+        users.map(user => {
+
+          const id =
+            user.id ?? "—";
+
+          const email =
+            escapeHtml(user.email || "—");
+
+          const registration =
+            escapeHtml(
+              user.created_at ||
+              user.registration ||
+              user.registered_at ||
+              "—"
+            );
+
+          const status =
+            String(
+              user.status || "—"
+            );
+
+          const statusLower =
+            status.toLowerCase();
+
+
+          const isActive =
+            statusLower === "active" ||
+            statusLower === "активна" ||
+            statusLower === "active_subscription";
+
+
+          const plan =
+            escapeHtml(
+              user.plan ||
+              "—"
+            );
+
+
+          const expires =
+            escapeHtml(
+              user.expires_at ||
+              user.expires ||
+              "—"
+            );
+
+
+          return `
+            <tr>
+
+              <td>
+                <span class="user-id">
+                  ${escapeHtml(id)}
+                </span>
+              </td>
+
+              <td>
+                <span class="user-email">
+                  ${email}
+                </span>
+              </td>
+
+              <td>
+                ${registration}
+              </td>
+
+              <td>
+                <span class="badge ${
+                  isActive
+                    ? "active"
+                    : "inactive"
+                }">
+                  ${escapeHtml(status)}
+                </span>
+              </td>
+
+              <td>
+                <span class="badge plan-badge">
+                  ${plan}
+                </span>
+              </td>
+
+              <td>
+                <span class="expires">
+                  ${expires}
+                </span>
+              </td>
+
+            </tr>
+          `;
+
+        }).join("");
+
+    }
+
+
+    document
+      .getElementById("searchInput")
+      .addEventListener(
+        "input",
+        renderUsers
+      );
+
+
+    async function testResetLink() {
+
+      const emailInput =
+        document.getElementById(
+          "resetEmail"
+        );
+
+      const button =
+        document.getElementById(
+          "resetButton"
+        );
+
+      const result =
+        document.getElementById(
+          "resetResult"
+        );
+
+
+      const email =
+        emailInput.value.trim();
+
+
+      if (!email) {
+
+        result.innerHTML = `
+          <span style="color:#d92d20;">
+            Введи email пользователя.
+          </span>
+        `;
+
+        return;
+      }
+
+
+      button.disabled = true;
+
+      button.textContent =
+        "Генерируем...";
+
+
+      result.textContent =
+        "";
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/test-reset-link",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              credentials: "same-origin",
+
+              body: JSON.stringify({
+                email
+              })
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            "Не удалось создать ссылку"
+          );
+        }
+
+
+        const resetUrl =
+          data.resetUrl ||
+          data.url;
+
+
+        if (resetUrl) {
+
+          result.innerHTML = `
+            <div style="
+              padding:12px 14px;
+              background:white;
+              border:1px solid #dce8ff;
+              border-radius:12px;
+            ">
+              <div style="
+                color:#667085;
+                font-size:11px;
+                margin-bottom:5px;
+              ">
+                Ссылка восстановления:
+              </div>
+
+              <a
+                href="${escapeHtml(resetUrl)}"
+                target="_blank"
+                rel="noopener"
+              >
+                ${escapeHtml(resetUrl)}
+              </a>
+            </div>
+          `;
+
+        } else {
+
+          result.textContent =
+            "Ссылка успешно создана.";
 
         }
 
-        const filtered =
-          allUsers.filter(user =>
-            String(user.email)
-              .toLowerCase()
-              .includes(query)
-          );
 
-        renderUsers(filtered);
+      } catch (error) {
 
-      }
-    );
-
-  function escapeHtml(value) {
-
-    return String(value)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-
-  }
-
-  // =========================
-  // ГЕНЕРАЦИЯ RESET LINK
-  // =========================
-
-  async function generateResetLink() {
-
-    const input =
-      document.getElementById("resetEmail");
-
-    const button =
-      document.getElementById("resetButton");
-
-    const result =
-      document.getElementById("resetResult");
-
-    const email =
-      input.value.trim().toLowerCase();
-
-    if (!email || !email.includes("@")) {
-
-      result.className =
-        "reset-result error-result";
-
-      result.textContent =
-        "Введите корректный email.";
-
-      return;
-
-    }
-
-    button.disabled = true;
-
-    button.textContent =
-      "Создание...";
-
-    result.className =
-      "reset-result";
-
-    result.textContent =
-      "";
-
-    try {
-
-      const response =
-        await fetch(
-          "/api/test-reset-link",
-          {
-            method: "POST",
-
-            credentials: "same-origin",
-
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-
-            body: JSON.stringify({
-              email
-            })
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (!response.ok || !data.success) {
-
-        throw new Error(
-          data.error ||
-          "Не удалось создать ссылку"
-        );
-
-      }
-
-      result.className =
-        "reset-result success";
-
-      result.innerHTML =
-        `
-        Ссылка создана. Она действует 15 минут.
-        <a
-          class="reset-link"
-          href="${escapeHtml(data.reset_url)}"
-        >
-          ${escapeHtml(data.reset_url)}
-        </a>
+        result.innerHTML = `
+          <span style="color:#d92d20;">
+            ${escapeHtml(error.message)}
+          </span>
         `;
 
-    } catch (error) {
+      } finally {
 
-      result.className =
-        "reset-result error-result";
+        button.disabled = false;
 
-      result.textContent =
-        error.message ||
-        "Ошибка соединения.";
+        button.textContent =
+          "Сгенерировать ссылку";
 
-    } finally {
-
-      button.disabled = false;
-
-      button.textContent =
-        "Создать ссылку";
+      }
 
     }
 
-  }
 
-  loadUsers();
+    loadUsers();
 
-  setInterval(
-    loadUsers,
-    60000
-  );
 
-</script>
+    setInterval(
+      loadUsers,
+      60000
+    );
+
+  </script>
 
 </body>
 </html>
