@@ -4,8 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="theme-color" content="#070707">
-  <meta name="description" content="Получите ранний доступ к NexoraVPN.">
+  <meta name="theme-color" content="#ffffff">
+  <meta
+    name="description"
+    content="Получите ранний доступ к NexoraVPN."
+  >
 
   <title>Ранний доступ — NexoraVPN</title>
 
@@ -17,24 +20,39 @@
     }
 
     :root {
-      --bg: #070707;
-      --card: #101010;
-      --text: #ffffff;
-      --muted: #999999;
-      --red: #ff3030;
-      --border: rgba(255,255,255,.09);
-      --green: #45df87;
+      --white: #ffffff;
+      --bg: #f7fafc;
+
+      --blue: #1769ff;
+      --blue-dark: #0b45c7;
+      --blue-soft: #eaf2ff;
+
+      --green: #2FCE2C;
+      --green-hover: #42D83F;
+      --green-soft: #E8F9E6;
+
+      --text: #07111f;
+      --muted: #637083;
+
+      --border: #e4eaf2;
+
+      --shadow:
+        0 25px 80px rgba(21, 55, 100, .10);
+
       --radius: 22px;
     }
 
     html {
       min-height: 100%;
+      scroll-behavior: smooth;
     }
 
     body {
       min-height: 100vh;
+
       background: var(--bg);
       color: var(--text);
+
       font-family:
         -apple-system,
         BlinkMacSystemFont,
@@ -43,6 +61,7 @@
         Inter,
         Arial,
         sans-serif;
+
       line-height: 1.5;
       overflow-x: hidden;
     }
@@ -61,81 +80,66 @@
        BACKGROUND
        ========================================================= */
 
-    .network-background {
+    .background {
       position: fixed;
       inset: 0;
       z-index: -1;
       pointer-events: none;
       overflow: hidden;
-      opacity: .27;
     }
 
-    .network-background::before {
-      content: "";
+    .glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(85px);
+      opacity: .38;
+    }
+
+    .glow-blue {
+      width: 430px;
+      height: 430px;
+
+      top: -190px;
+      left: -140px;
+
+      background: #c5d9ff;
+    }
+
+    .glow-green {
+      width: 380px;
+      height: 380px;
+
+      right: -160px;
+      bottom: 5%;
+
+      background: #c1f4bd;
+    }
+
+    .grid {
       position: absolute;
       inset: 0;
-      background:
-        radial-gradient(
-          circle at 50% 20%,
-          rgba(255,255,255,.055),
-          transparent 32%
+
+      opacity: .24;
+
+      background-image:
+        linear-gradient(
+          rgba(23,105,255,.035) 1px,
+          transparent 1px
         ),
-        radial-gradient(
-          circle at 50% 100%,
-          rgba(255,48,48,.07),
-          transparent 40%
+        linear-gradient(
+          90deg,
+          rgba(23,105,255,.035) 1px,
+          transparent 1px
         );
-    }
 
-    .tech-icon {
-      position: absolute;
-      color: #777;
-      opacity: .18;
-    }
+      background-size: 45px 45px;
 
-    .tech-icon svg {
-      width: 100%;
-      height: 100%;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .globe {
-      width: 250px;
-      height: 250px;
-      left: -55px;
-      top: 105px;
-    }
-
-    .wifi {
-      width: 135px;
-      height: 135px;
-      right: 9%;
-      top: 16%;
-    }
-
-    .shield {
-      width: 205px;
-      height: 205px;
-      right: -45px;
-      bottom: 9%;
-    }
-
-    .nodes {
-      width: 165px;
-      height: 165px;
-      left: 8%;
-      bottom: 6%;
-    }
-
-    .lock {
-      width: 120px;
-      height: 120px;
-      right: 15%;
-      bottom: 34%;
+      mask-image:
+        linear-gradient(
+          to bottom,
+          black,
+          transparent 85%
+        );
     }
 
     /* =========================================================
@@ -152,61 +156,83 @@
        ========================================================= */
 
     header {
-      height: 80px;
+      height: 78px;
+
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 20px;
     }
 
     .logo {
       display: flex;
       align-items: center;
       gap: 10px;
-      color: white;
+
       font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -.6px;
+      font-weight: 850;
+      letter-spacing: -.7px;
     }
 
     .logo-mark {
       width: 36px;
       height: 36px;
+
       display: grid;
       place-items: center;
-      border-radius: 11px;
-      background: var(--red);
-      box-shadow: 0 0 30px rgba(255,48,48,.28);
+
+      border-radius: 12px;
+
+      background: var(--blue);
+      color: white;
+
+      box-shadow:
+        0 8px 25px rgba(23,105,255,.25),
+        inset 0 -2px 0 rgba(0,0,0,.08);
+
       font-size: 18px;
+      font-weight: 850;
     }
 
     .back {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 40px;
-      padding: 0 15px;
-      border: 1px solid rgba(255,255,255,.09);
+
+      min-height: 42px;
+      padding: 0 16px;
+
+      border: 1px solid var(--border);
       border-radius: 13px;
-      background: rgba(255,255,255,.035);
-      color: #aaa;
+
+      background: white;
+
+      color: #637083;
+
       font-size: 13px;
-      font-weight: 650;
+      font-weight: 700;
+
+      box-shadow:
+        0 8px 25px rgba(20,50,90,.04);
+
       transition:
+        transform .2s ease,
         color .2s ease,
         background .2s ease,
-        border-color .2s ease,
-        transform .2s ease;
+        border-color .2s ease;
     }
 
     .back:hover {
-      color: white;
-      background: rgba(255,255,255,.07);
-      border-color: rgba(255,255,255,.15);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+
+      color: var(--blue);
+      background: var(--blue-soft);
+
+      border-color: #bfd3f7;
     }
 
     .back:active {
-      transform: scale(.97);
+      transform: scale(.98);
     }
 
     /* =========================================================
@@ -214,11 +240,13 @@
        ========================================================= */
 
     main {
-      min-height: calc(100vh - 160px);
+      min-height: calc(100vh - 156px);
+
       display: flex;
-      justify-content: center;
       align-items: center;
-      padding: 45px 0 80px;
+      justify-content: center;
+
+      padding: 55px 0 80px;
     }
 
     .content {
@@ -234,23 +262,38 @@
       display: inline-flex;
       align-items: center;
       gap: 9px;
+
       padding: 8px 14px;
-      border: 1px solid var(--border);
+
+      border: 1px solid #dce8f4;
       border-radius: 999px;
-      background: rgba(255,255,255,.035);
-      color: #c5c5c5;
+
+      background: rgba(255,255,255,.88);
+
+      color: #5f6d7d;
+
       font-size: 13px;
+      font-weight: 650;
+
+      box-shadow:
+        0 8px 25px rgba(20,50,90,.05);
+
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+
       margin-bottom: 25px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
     }
 
     .badge-dot {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
+
       border-radius: 50%;
-      background: var(--red);
-      box-shadow: 0 0 13px rgba(255,48,48,.8);
+
+      background: var(--green);
+
+      box-shadow:
+        0 0 14px rgba(47,206,44,.65);
     }
 
     /* =========================================================
@@ -258,21 +301,28 @@
        ========================================================= */
 
     h1 {
-      font-size: clamp(53px, 8vw, 82px);
+      font-size: clamp(52px, 8vw, 84px);
+
       line-height: .94;
+
       letter-spacing: -5px;
-      font-weight: 850;
+
+      font-weight: 900;
     }
 
     h1 span {
-      color: var(--red);
+      color: var(--blue);
     }
 
     .description {
-      max-width: 580px;
-      margin: 28px auto 35px;
+      max-width: 600px;
+
+      margin: 28px auto 36px;
+
       color: var(--muted);
-      font-size: 18px;
+
+      font-size: clamp(16px, 2vw, 18px);
+
       line-height: 1.55;
     }
 
@@ -281,32 +331,41 @@
        ========================================================= */
 
     .access-card {
-      max-width: 570px;
+      width: min(570px, 100%);
+
       margin: auto;
-      padding: 26px;
+
+      padding: 28px;
+
       text-align: left;
-      background:
-        linear-gradient(
-          145deg,
-          rgba(24,24,24,.92),
-          rgba(11,11,11,.92)
-        );
+
+      background: rgba(255,255,255,.94);
+
       border: 1px solid var(--border);
+
       border-radius: 24px;
-      box-shadow: 0 30px 90px rgba(0,0,0,.45);
+
+      box-shadow: var(--shadow);
+
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
     }
 
     .access-card h2 {
       font-size: 22px;
-      margin-bottom: 8px;
+
       letter-spacing: -.5px;
+
+      margin-bottom: 7px;
     }
 
-    .access-card > p,
     .form-description {
-      color: #818181;
+      color: #748194;
+
       font-size: 14px;
+
       line-height: 1.5;
+
       margin-bottom: 20px;
     }
 
@@ -316,14 +375,21 @@
 
     .selected-plan {
       display: none;
+
       align-items: center;
       justify-content: space-between;
+
       gap: 15px;
+
       margin-bottom: 18px;
-      padding: 13px 15px;
-      border: 1px solid rgba(255,48,48,.20);
+
+      padding: 14px 15px;
+
+      border: 1px solid rgba(47,206,44,.28);
+
       border-radius: 15px;
-      background: rgba(255,48,48,.055);
+
+      background: var(--green-soft);
     }
 
     .selected-plan.show {
@@ -331,20 +397,28 @@
     }
 
     .selected-plan-label {
-      color: #777;
+      color: #718094;
+
       font-size: 11px;
+
       margin-bottom: 2px;
     }
 
     .selected-plan-name {
+      color: var(--text);
+
       font-size: 14px;
-      font-weight: 750;
+
+      font-weight: 800;
     }
 
     .selected-plan-price {
-      color: var(--red);
+      color: #159b12;
+
       font-size: 15px;
-      font-weight: 800;
+
+      font-weight: 850;
+
       white-space: nowrap;
     }
 
@@ -354,20 +428,31 @@
 
     form {
       display: flex;
+
       gap: 10px;
     }
 
     input {
       flex: 1;
+
       min-width: 0;
+
       height: 52px;
+
       padding: 0 16px;
+
       outline: none;
-      border: 1px solid rgba(255,255,255,.10);
+
+      border: 1px solid #dfe6ef;
+
       border-radius: 14px;
-      background: rgba(255,255,255,.045);
-      color: white;
+
+      background: #f9fbfd;
+
+      color: var(--text);
+
       font-size: 15px;
+
       transition:
         border-color .2s ease,
         background .2s ease,
@@ -375,26 +460,40 @@
     }
 
     input::placeholder {
-      color: #666;
+      color: #9aa5b3;
     }
 
     input:focus {
-      border-color: rgba(255,48,48,.65);
-      background: rgba(255,255,255,.055);
-      box-shadow: 0 0 0 3px rgba(255,48,48,.07);
+      border-color: rgba(23,105,255,.65);
+
+      background: white;
+
+      box-shadow:
+        0 0 0 3px rgba(23,105,255,.08);
     }
 
     .submit-button {
       height: 52px;
+
       padding: 0 22px;
+
       border: 0;
+
       border-radius: 14px;
-      background: var(--red);
-      color: white;
+
+      background: var(--green);
+
+      color: #061006;
+
       font-size: 14px;
-      font-weight: 750;
+
+      font-weight: 800;
+
       cursor: pointer;
-      box-shadow: 0 12px 35px rgba(255,48,48,.20);
+
+      box-shadow:
+        0 12px 35px rgba(47,206,44,.20);
+
       transition:
         transform .2s ease,
         background .2s ease,
@@ -403,18 +502,32 @@
 
     .submit-button:hover {
       transform: translateY(-2px);
-      background: #ff4141;
-      box-shadow: 0 18px 45px rgba(255,48,48,.28);
+
+      background: var(--green-hover);
+
+      box-shadow:
+        0 18px 45px rgba(47,206,44,.28);
     }
 
     .submit-button:active {
       transform: scale(.98);
     }
 
+    .submit-button:disabled {
+      cursor: not-allowed;
+
+      opacity: .65;
+
+      transform: none;
+    }
+
     .privacy {
       margin-top: 15px;
+
       text-align: center;
-      color: #656565;
+
+      color: #8793a1;
+
       font-size: 12px;
     }
 
@@ -424,13 +537,21 @@
 
     .success {
       display: none;
-      padding: 20px;
-      border: 1px solid rgba(69,223,135,.20);
-      border-radius: 16px;
-      background: rgba(69,223,135,.06);
-      color: #66e69a;
+
+      padding: 22px;
+
+      border: 1px solid rgba(47,206,44,.25);
+
+      border-radius: 17px;
+
+      background: var(--green-soft);
+
+      color: #167d13;
+
       font-size: 14px;
+
       line-height: 1.5;
+
       text-align: center;
     }
 
@@ -439,14 +560,60 @@
     }
 
     .success-icon {
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
+
       margin: 0 auto 12px;
+
       display: grid;
       place-items: center;
-      border-radius: 13px;
-      background: rgba(69,223,135,.10);
-      font-size: 20px;
+
+      border-radius: 14px;
+
+      background: white;
+
+      color: #159b12;
+
+      font-size: 21px;
+
+      font-weight: 900;
+
+      box-shadow:
+        0 8px 20px rgba(47,206,44,.10);
+    }
+
+    .success strong {
+      color: #0c6410;
+
+      font-size: 15px;
+    }
+
+    /* =========================================================
+       ERROR
+       ========================================================= */
+
+    .error {
+      display: none;
+
+      margin-top: 12px;
+
+      padding: 11px 13px;
+
+      border: 1px solid #ffd7d7;
+
+      border-radius: 12px;
+
+      background: #fff5f5;
+
+      color: #c62828;
+
+      font-size: 13px;
+
+      text-align: center;
+    }
+
+    .error.show {
+      display: block;
     }
 
     /* =========================================================
@@ -455,36 +622,54 @@
 
     .info {
       display: grid;
+
       grid-template-columns: repeat(3, 1fr);
+
       gap: 10px;
+
       margin-top: 22px;
     }
 
     .info-item {
-      padding: 15px;
+      padding: 16px;
+
       border-radius: 16px;
-      background: rgba(255,255,255,.035);
-      border: 1px solid rgba(255,255,255,.045);
+
+      background: rgba(255,255,255,.82);
+
+      border: 1px solid var(--border);
+
+      box-shadow:
+        0 8px 25px rgba(20,50,90,.035);
+
       transition:
         transform .2s ease,
-        border-color .2s ease;
+        border-color .2s ease,
+        box-shadow .2s ease;
     }
 
     .info-item:hover {
       transform: translateY(-3px);
-      border-color: rgba(255,255,255,.10);
+
+      border-color: #c9d8ed;
+
+      box-shadow:
+        0 12px 30px rgba(20,50,90,.06);
     }
 
     .info-number {
-      color: var(--red);
-      font-size: 18px;
-      font-weight: 800;
-      margin-bottom: 4px;
+      color: var(--blue);
+
+      font-size: 19px;
+
+      margin-bottom: 5px;
     }
 
     .info-text {
-      color: #777;
+      color: #748194;
+
       font-size: 12px;
+
       line-height: 1.35;
     }
 
@@ -494,8 +679,11 @@
 
     footer {
       padding: 30px 0;
+
       text-align: center;
-      color: #555;
+
+      color: #8290a0;
+
       font-size: 12px;
     }
 
@@ -513,26 +701,53 @@
         height: 70px;
       }
 
+      .logo {
+        font-size: 18px;
+      }
+
+      .logo-mark {
+        width: 32px;
+        height: 32px;
+      }
+
+      .back {
+        min-height: 39px;
+
+        padding: 0 12px;
+
+        font-size: 12px;
+      }
+
       main {
         min-height: calc(100vh - 140px);
-        padding: 30px 0 65px;
+
+        padding: 35px 0 65px;
       }
 
       h1 {
-        font-size: clamp(46px, 15vw, 68px);
+        font-size: clamp(47px, 15vw, 68px);
+
         letter-spacing: -3.5px;
       }
 
       .description {
+        margin-top: 24px;
+
         font-size: 16px;
       }
 
       .access-card {
         padding: 20px;
+
+        border-radius: 21px;
       }
 
       form {
         flex-direction: column;
+      }
+
+      input {
+        width: 100%;
       }
 
       .submit-button {
@@ -547,23 +762,45 @@
         align-items: flex-start;
       }
 
-      .globe {
-        width: 190px;
-        height: 190px;
-        left: -65px;
+      .glow-blue {
+        width: 280px;
+        height: 280px;
+
+        left: -120px;
+        top: -70px;
       }
 
-      .shield {
-        width: 150px;
-        height: 150px;
+      .glow-green {
+        width: 260px;
+        height: 260px;
+
+        right: -130px;
+        bottom: 5%;
+      }
+    }
+
+    @media (max-width: 380px) {
+
+      .back {
+        font-size: 0;
+
+        width: 40px;
+
+        padding: 0;
       }
 
-      .wifi {
-        right: -25px;
+      .back::before {
+        content: "←";
+
+        font-size: 18px;
       }
 
-      .nodes {
-        left: -25px;
+      h1 {
+        font-size: 45px;
+      }
+
+      .access-card {
+        padding: 17px;
       }
     }
   </style>
@@ -575,72 +812,12 @@
        BACKGROUND
        ======================================================= -->
 
-  <div class="network-background" aria-hidden="true">
-
-    <!-- GLOBE -->
-
-    <div class="tech-icon globe">
-      <svg viewBox="0 0 200 200">
-        <circle cx="100" cy="100" r="78"/>
-        <ellipse cx="100" cy="100" rx="34" ry="78"/>
-        <path d="M22 100h156"/>
-        <path d="M31 67h138"/>
-        <path d="M31 133h138"/>
-        <path d="M100 22v156"/>
-        <path d="M100 22c-22 20-35 46-35 78s13 58 35 78"/>
-        <path d="M100 22c22 20 35 46 35 78s-13 58-35 78"/>
-      </svg>
-    </div>
-
-    <!-- WIFI -->
-
-    <div class="tech-icon wifi">
-      <svg viewBox="0 0 120 120">
-        <path d="M15 43c28-25 62-25 90 0"/>
-        <path d="M29 59c19-17 43-17 62 0"/>
-        <path d="M44 75c10-9 22-9 32 0"/>
-        <circle cx="60" cy="91" r="3"/>
-      </svg>
-    </div>
-
-    <!-- SHIELD -->
-
-    <div class="tech-icon shield">
-      <svg viewBox="0 0 200 230">
-        <path d="M100 15l72 28v57c0 54-34 92-72 115C62 192 28 154 28 100V43z"/>
-        <path d="M100 48v120"/>
-        <path d="M62 91l38 38 38-38"/>
-      </svg>
-    </div>
-
-    <!-- NODES -->
-
-    <div class="tech-icon nodes">
-      <svg viewBox="0 0 180 180">
-        <path d="M25 90L70 35l50 28 35-38"/>
-        <path d="M25 90l50 47 45-74"/>
-        <path d="M75 137l60 12"/>
-        <circle cx="25" cy="90" r="7"/>
-        <circle cx="70" cy="35" r="7"/>
-        <circle cx="120" cy="63" r="7"/>
-        <circle cx="155" cy="25" r="7"/>
-        <circle cx="75" cy="137" r="7"/>
-        <circle cx="135" cy="149" r="7"/>
-      </svg>
-    </div>
-
-    <!-- LOCK -->
-
-    <div class="tech-icon lock">
-      <svg viewBox="0 0 120 140">
-        <rect x="23" y="58" width="74" height="62" rx="10"/>
-        <path d="M38 58V39c0-15 10-26 22-26s22 11 22 26v19"/>
-        <circle cx="60" cy="88" r="5"/>
-        <path d="M60 93v13"/>
-      </svg>
-    </div>
-
+  <div class="background" aria-hidden="true">
+    <div class="glow glow-blue"></div>
+    <div class="glow glow-green"></div>
+    <div class="grid"></div>
   </div>
+
 
   <div class="page">
 
@@ -661,6 +838,7 @@
 
     </header>
 
+
     <!-- =====================================================
          MAIN
          ===================================================== -->
@@ -671,13 +849,15 @@
 
         <div class="badge">
           <span class="badge-dot"></span>
-          Early Access
+          Ранний доступ
         </div>
+
 
         <h1>
           Будь среди<br>
           <span>первых.</span>
         </h1>
+
 
         <p class="description">
           NexoraVPN сейчас находится в разработке.
@@ -685,7 +865,10 @@
           и получить ранний доступ.
         </p>
 
-        <!-- ACCESS CARD -->
+
+        <!-- =================================================
+             ACCESS CARD
+             ================================================= -->
 
         <div class="access-card">
 
@@ -699,25 +882,38 @@
               Мы сообщим тебе, когда NexoraVPN будет готов.
             </p>
 
+
             <!-- SELECTED PLAN -->
 
-            <div id="selected-plan" class="selected-plan">
+            <div
+              id="selected-plan"
+              class="selected-plan"
+            >
 
               <div>
+
                 <div class="selected-plan-label">
                   Выбранный тариф
                 </div>
 
-                <div id="selected-plan-name" class="selected-plan-name">
+                <div
+                  id="selected-plan-name"
+                  class="selected-plan-name"
+                >
                   —
                 </div>
+
               </div>
 
-              <div id="selected-plan-price" class="selected-plan-price">
+              <div
+                id="selected-plan-price"
+                class="selected-plan-price"
+              >
                 —
               </div>
 
             </div>
+
 
             <!-- FORM -->
 
@@ -729,17 +925,26 @@
                 type="email"
                 placeholder="your@email.com"
                 autocomplete="email"
+                inputmode="email"
                 required
               >
 
               <button
                 type="submit"
                 class="submit-button"
+                id="submit-button"
               >
                 Получить доступ
               </button>
 
             </form>
+
+
+            <div
+              id="error"
+              class="error"
+            ></div>
+
 
             <div class="privacy">
               Никакого спама. Только новости NexoraVPN.
@@ -747,9 +952,15 @@
 
           </div>
 
-          <!-- SUCCESS -->
 
-          <div id="success" class="success">
+          <!-- =================================================
+               SUCCESS
+               ================================================= -->
+
+          <div
+            id="success"
+            class="success"
+          >
 
             <div class="success-icon">
               ✓
@@ -766,7 +977,10 @@
 
           </div>
 
-          <!-- INFO -->
+
+          <!-- =================================================
+               INFO
+               ================================================= -->
 
           <div class="info">
 
@@ -782,6 +996,7 @@
 
             </div>
 
+
             <div class="info-item">
 
               <div class="info-number">
@@ -793,6 +1008,7 @@
               </div>
 
             </div>
+
 
             <div class="info-item">
 
@@ -814,6 +1030,7 @@
 
     </main>
 
+
     <!-- =====================================================
          FOOTER
          ===================================================== -->
@@ -824,43 +1041,207 @@
 
   </div>
 
+
   <!-- =======================================================
        JAVASCRIPT
        ======================================================= -->
 
   <script>
-    const form = document.getElementById("access-form");
-const formContainer = document.getElementById("form-container");
-const success = document.getElementById("success");
 
-form.addEventListener("submit", async function(event) {
-  event.preventDefault();
+    const form =
+      document.getElementById("access-form");
 
-  const emailInput = document.getElementById("email");
-  const email = emailInput.value.trim();
+    const formContainer =
+      document.getElementById("form-container");
 
-  try {
-    const response = await fetch("/api/early-access", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
+    const success =
+      document.getElementById("success");
+
+    const emailInput =
+      document.getElementById("email");
+
+    const submitButton =
+      document.getElementById("submit-button");
+
+    const errorBox =
+      document.getElementById("error");
+
+    const selectedPlan =
+      document.getElementById("selected-plan");
+
+    const selectedPlanName =
+      document.getElementById("selected-plan-name");
+
+    const selectedPlanPrice =
+      document.getElementById("selected-plan-price");
+
+
+    /* =======================================================
+       PLAN SELECTION
+       ======================================================= */
+
+    const params =
+      new URLSearchParams(window.location.search);
+
+    const plan =
+      params.get("plan");
+
+
+    const plans = {
+
+      week: {
+        name: "Неделя",
+        price: "50 ₽ / 7 дней"
       },
-      body: JSON.stringify({ email })
-    });
 
-    const result = await response.json();
+      month: {
+        name: "Месяц",
+        price: "170 ₽ / месяц"
+      },
 
-    if (result.success) {
-      formContainer.style.display = "none";
-      success.classList.add("show");
-    } else {
-      alert(result.error || "Не удалось получить ранний доступ");
+      year: {
+        name: "Год",
+        price: "725 ₽ / год"
+      }
+
+    };
+
+
+    if (plan && plans[plan]) {
+
+      selectedPlanName.textContent =
+        plans[plan].name;
+
+      selectedPlanPrice.textContent =
+        plans[plan].price;
+
+      selectedPlan.classList.add("show");
+
     }
 
-  } catch (error) {
-    alert("Ошибка соединения. Попробуйте ещё раз.");
-  }
-});
+
+    /* =======================================================
+       FORM
+       ======================================================= */
+
+    form.addEventListener(
+      "submit",
+      async function(event) {
+
+        event.preventDefault();
+
+
+        const email =
+          emailInput.value.trim();
+
+
+        errorBox.classList.remove("show");
+        errorBox.textContent = "";
+
+
+        if (!email) {
+
+          errorBox.textContent =
+            "Введите email.";
+
+          errorBox.classList.add("show");
+
+          return;
+
+        }
+
+
+        submitButton.disabled = true;
+
+        submitButton.textContent =
+          "Отправка…";
+
+
+        try {
+
+          const response =
+            await fetch(
+              "/api/early-access",
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type":
+                    "application/json"
+                },
+
+                body: JSON.stringify({
+                  email: email
+                })
+              }
+            );
+
+
+          let result;
+
+          try {
+
+            result =
+              await response.json();
+
+          } catch {
+
+            result = {
+              success: false,
+              error:
+                "Сервер вернул некорректный ответ."
+            };
+
+          }
+
+
+          if (
+            response.ok &&
+            result.success
+          ) {
+
+            formContainer.style.display =
+              "none";
+
+            success.classList.add(
+              "show"
+            );
+
+          } else {
+
+            errorBox.textContent =
+              result.error ||
+              "Не удалось получить ранний доступ.";
+
+            errorBox.classList.add(
+              "show"
+            );
+
+          }
+
+
+        } catch (error) {
+
+          errorBox.textContent =
+            "Ошибка соединения. Попробуйте ещё раз.";
+
+          errorBox.classList.add(
+            "show"
+          );
+
+        } finally {
+
+          submitButton.disabled =
+            false;
+
+          submitButton.textContent =
+            "Получить доступ";
+
+        }
+
+      }
+    );
+
   </script>
 
 </body>
